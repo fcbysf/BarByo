@@ -24,6 +24,10 @@ const BookingPage = () => {
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [bookingLoading, setBookingLoading] = useState(false);
 
+  // Guest State
+  const [guestName, setGuestName] = useState('');
+  const [guestPhone, setGuestPhone] = useState('');
+
   // Computed
   const weekDates = Array.from({ length: 5 }, (_, i) => addDays(selectedDate, i - 2 > 0 ? i - 2 : i));
 
@@ -72,31 +76,37 @@ const BookingPage = () => {
   };
 
   const handleBooking = async () => {
-    if (!user) {
-      alert('Please log in to book an appointment');
-      navigate('/login');
+    if (!selectedServiceId || !selectedSlot) return;
+
+    if (!user && (!guestName || !guestPhone)) {
+      alert('Please provide your name and phone number to book.');
       return;
     }
-
-    if (!selectedServiceId || !selectedSlot) return;
 
     setBookingLoading(true);
     try {
       const service = services.find(s => s.id === selectedServiceId);
 
       await createAppointment({
-        customer_id: user.id,
+        customer_id: user?.id || null, // Allow null for guests
+        guest_name: !user ? guestName : null,
+        guest_phone: !user ? guestPhone : null,
         barber_id: barberId,
         appointment_date: format(selectedDate, 'yyyy-MM-dd'),
         appointment_time: selectedSlot,
         service: service.name,
         price: service.price,
         status: 'confirmed',
-        notes: ''
+        notes: !user ? `Guest booking: ${guestName} (${guestPhone})` : ''
       });
 
       alert('Booking confirmed!');
-      navigate('/dashboard');
+      if (user) {
+        navigate('/dashboard');
+      } else {
+        // For guests, maybe just show a success state or go back to home
+        navigate('/');
+      }
     } catch (error) {
       console.error('Booking failed:', error);
       alert('Failed to book appointment: ' + error.message);
@@ -268,6 +278,29 @@ const BookingPage = () => {
                   </div>
                 )}
               </div>
+
+              {/* Guest Info Form */}
+              {!user && (
+                <div className="space-y-4 pt-4 border-t border-slate-100">
+                  <h3 className="font-black text-sm">Your Contact Info</h3>
+                  <div className="space-y-3">
+                    <input
+                      type="text"
+                      placeholder="Full Name"
+                      value={guestName}
+                      onChange={(e) => setGuestName(e.target.value)}
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:border-secondary transition-all outline-none"
+                    />
+                    <input
+                      type="tel"
+                      placeholder="Phone Number"
+                      value={guestPhone}
+                      onChange={(e) => setGuestPhone(e.target.value)}
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:border-secondary transition-all outline-none"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="p-6 bg-slate-50 border-t border-slate-100">

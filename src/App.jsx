@@ -5,6 +5,7 @@ import { useAuthStore } from './store/authStore';
 import ProtectedRoute from './components/ProtectedRoute';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
+import ClientPage from './pages/ClientPage';
 import OnboardingPage from './pages/OnboardingPage';
 import DashboardPage from './pages/DashboardPage';
 import SchedulePage from './pages/SchedulePage';
@@ -24,6 +25,8 @@ const App = () => {
         {/* Public routes */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/client" element={<ClientPage />} />
+        <Route path="/book/:barberId" element={<BookingPage />} />
 
         {/* Protected routes - require authentication */}
         <Route path="/onboarding" element={
@@ -39,11 +42,6 @@ const App = () => {
         <Route path="/schedule" element={
           <ProtectedRoute>
             <SchedulePage />
-          </ProtectedRoute>
-        } />
-        <Route path="/book/:barberId" element={
-          <ProtectedRoute>
-            <BookingPage />
           </ProtectedRoute>
         } />
 

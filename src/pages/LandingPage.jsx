@@ -82,21 +82,21 @@ const LandingPage = () => {
                 Go to Dashboard
                 <ArrowUp size={20} />
               </Link>
-              <Link to="/book/:shopId" className="bg-white border border-slate-200 text-text-main text-lg font-bold py-4 px-10 rounded-xl hover:bg-slate-50 transition-all flex items-center gap-2">
+              <Link to="/client" className="bg-white border border-slate-200 text-text-main text-lg font-bold py-4 px-10 rounded-xl hover:bg-slate-50 transition-all flex items-center gap-2">
                 <Scissors className="text-secondary" size={20} />
                 Book a Cut
               </Link>
             </>
           ) : (
             <>
-              <Link to="/login" className="bg-primary hover:bg-primary-hover text-text-main text-lg font-bold py-4 px-10 rounded-xl shadow-lg shadow-primary/30 transition-all flex items-center gap-2">
-                Start Free Trial
-                <ArrowUp size={20} />
+              <Link to="/login" className="bg-primary hover:bg-primary-hover text-text-main text-lg font-bold py-4 px-12 rounded-2xl shadow-xl shadow-primary/30 transition-all flex flex-col items-center group">
+                <span className="text-xl font-black">I am a Barber</span>
+                <span className="text-xs opacity-70 group-hover:opacity-100 transition-opacity">Manage my Shop</span>
               </Link>
-              <button className="bg-white border border-slate-200 text-text-main text-lg font-bold py-4 px-10 rounded-xl hover:bg-slate-50 transition-all flex items-center gap-2">
-                <Play className="text-secondary" size={20} />
-                Watch Demo
-              </button>
+              <Link to="/client" className="bg-white border-2 border-slate-200 text-text-main text-lg font-bold py-4 px-12 rounded-2xl hover:border-secondary transition-all flex flex-col items-center group">
+                <span className="text-xl font-black">I am a Client</span>
+                <span className="text-xs text-text-muted group-hover:text-secondary transition-colors">Book a Barber</span>
+              </Link>
             </>
           )}
         </div>
