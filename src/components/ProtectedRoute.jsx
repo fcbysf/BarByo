@@ -16,6 +16,16 @@ const ProtectedRoute = ({ children }) => {
     // Initialize auth state on mount
     useEffect(() => {
         initialize();
+
+        // Safety: if it's still loading after 6 seconds, something is wrong
+        const timer = setTimeout(() => {
+            if (loading) {
+                console.warn('ProtectedRoute: Auth still loading after 6s, forcing render');
+                useAuthStore.setState({ loading: false });
+            }
+        }, 6000);
+
+        return () => clearTimeout(timer);
     }, [initialize]);
 
     // Show loading state while checking authentication

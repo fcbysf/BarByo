@@ -5,6 +5,7 @@ import { useAuthStore } from '../store/authStore';
 import { getUpcomingAppointments, getBarberAppointments } from '../services/appointmentService';
 import { supabase } from '../lib/supabase';
 import { Scissors, LayoutDashboard, Calendar, Users, Settings, LogOut, Search, Bell, Plus, TrendingUp, CalendarX, MoreVertical, DollarSign, Clock, UserPlus } from 'lucide-react';
+import NotificationDropdown from '../components/NotificationDropdown';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -156,10 +157,7 @@ const DashboardPage = () => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={18} />
               <input type="text" placeholder="Search..." className="pl-10 pr-4 py-2 bg-slate-50 border-transparent rounded-xl text-sm w-64 focus:ring-2 focus:ring-primary focus:bg-white transition-all outline-none" />
             </div>
-            <button className="text-text-muted relative">
-              <Bell size={20} />
-              <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-            </button>
+            <NotificationDropdown shopId={barberShop?.id} />
             {isBarber ? (
               <Link to="/schedule" className="bg-primary hover:bg-primary-hover text-text-main px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 shadow-sm transition-all">
                 <Calendar size={20} /> View Schedule

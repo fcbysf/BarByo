@@ -23,6 +23,16 @@ export const useAuthStore = create((set, get) => ({
     try {
       set({ loading: true, error: null });
 
+      // Safety timeout: if auth takes too long, stop loading
+      const timeoutId = setTimeout(() => {
+        if (get().loading) {
+          console.warn(
+            "Auth initialization timed out, forcing loading to false",
+          );
+          set({ loading: false });
+        }
+      }, 5000);
+
       // Check if there's an existing session
       const {
         data: { session },

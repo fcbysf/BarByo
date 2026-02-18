@@ -5,7 +5,8 @@ import { useAuthStore } from '../store/authStore';
 import { getBarberAppointments, createAppointment, deleteAppointment } from '../services/appointmentService';
 import { getBarberServices } from '../services/barberService';
 import { supabase } from '../lib/supabase';
-import { ArrowLeft, ChevronLeft, ChevronRight, Plus, X, User, Scissors, Clock, Calendar as CalendarIcon, Loader2, Trash2 } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Plus, X, User, Scissors, Clock, Calendar as CalendarIcon, Loader2, Trash2, Bell } from 'lucide-react';
+import NotificationDropdown from '../components/NotificationDropdown';
 import { format, startOfWeek, addDays, subDays, isSameDay, parseISO } from 'date-fns';
 
 const SchedulePage = () => {
@@ -209,6 +210,7 @@ const SchedulePage = () => {
             <button onClick={() => setCurrentDate(new Date())} className="px-4 py-1 text-sm font-bold">Today</button>
             <button onClick={() => setCurrentDate(addDays(currentDate, 7))} className="p-1 hover:bg-slate-50 rounded-full"><ChevronRight size={20} /></button>
           </div>
+          <NotificationDropdown shopId={myBarberShop?.id} />
           <button
             onClick={() => setIsModalOpen(true)}
             className="bg-primary hover:bg-primary-hover text-text-main px-6 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 shadow-sm"
