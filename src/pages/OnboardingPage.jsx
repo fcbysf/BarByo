@@ -12,6 +12,7 @@ const OnboardingPage = () => {
   const { user, profile, updateProfile } = useAuthStore();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [checkingShop, setCheckingShop] = useState(true);
   const [error, setError] = useState(null);
 
   // Step 1: Shop Info
@@ -42,8 +43,9 @@ const OnboardingPage = () => {
   // Check if barber already has a shop and redirect to dashboard
   useEffect(() => {
     const checkExistingShop = async () => {
+      // Wait for user to be available from auth store
       if (user) {
-        setLoading(true);
+        setCheckingShop(true);
         try {
           const { data: shop } = await supabase
             .from('barbers')
@@ -54,18 +56,33 @@ const OnboardingPage = () => {
           if (shop) {
             // Already onboarded, skip to dashboard
             navigate('/dashboard', { replace: true });
+            return;
           }
         } catch (err) {
-          // ignore error if no shop found - just proceed with onboarding
+          // ignore error (probably PG 116 "no rows") and just show the form
           console.log('No existing shop found or error checking:', err.message);
         } finally {
-          setLoading(false);
+          setCheckingShop(false);
         }
+      } else if (user === null) {
+        // user explicitly null means signed out or not loaded yet
+        // if user is null we wait for auth to load or redirect will happen in ProtectedRoute
       }
     };
 
     checkExistingShop();
   }, [user, navigate]);
+
+  if (checkingShop) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-background-light">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-text-muted font-medium">Preparing your setup...</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleShopChange = (e) => {
     setShopData({

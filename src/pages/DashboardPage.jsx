@@ -34,11 +34,13 @@ const DashboardPage = () => {
             .eq('user_id', user.id)
             .single();
 
-          setBarberShop(shop);
-
           if (shop) {
+            setBarberShop(shop);
             const data = await getBarberAppointments(shop.id);
             setAppointments(data);
+          } else {
+            // No shop found for this barber, send to onboarding
+            navigate('/onboarding', { replace: true });
           }
         } else {
           // Customer: fetch their upcoming appointments using auth user id
@@ -47,7 +49,12 @@ const DashboardPage = () => {
         }
       } catch (err) {
         console.error('Error fetching data:', err);
-        setError(err.message);
+        // If it's a "no row found" error for the barber shop, redirect to onboarding
+        if (profile?.user_type === 'barber' && (err.code === 'PGRST116' || err.message?.includes('0 rows'))) {
+          navigate('/onboarding', { replace: true });
+        } else {
+          setError(err.message);
+        }
       } finally {
         setLoading(false);
       }
@@ -268,14 +275,14 @@ const DashboardPage = () => {
                         <td className="px-6 py-5 text-sm text-text-muted">{a.service}</td>
                         <td className="px-6 py-5">
                           <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${a.status === 'Confirmed' ? 'bg-green-100 text-green-700' :
-                              a.status === 'Pending' ? 'bg-amber-100 text-amber-700' :
-                                a.status === 'Cancelled' ? 'bg-red-100 text-red-700' :
-                                  'bg-slate-100 text-slate-600'
+                            a.status === 'Pending' ? 'bg-amber-100 text-amber-700' :
+                              a.status === 'Cancelled' ? 'bg-red-100 text-red-700' :
+                                'bg-slate-100 text-slate-600'
                             }`}>
                             <span className={`w-1.5 h-1.5 rounded-full ${a.status === 'Confirmed' ? 'bg-green-500' :
-                                a.status === 'Pending' ? 'bg-amber-500' :
-                                  a.status === 'Cancelled' ? 'bg-red-500' :
-                                    'bg-slate-400'
+                              a.status === 'Pending' ? 'bg-amber-500' :
+                                a.status === 'Cancelled' ? 'bg-red-500' :
+                                  'bg-slate-400'
                               }`}></span>
                             {a.status}
                           </span>
