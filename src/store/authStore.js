@@ -63,12 +63,24 @@ export const useAuthStore = create((set, get) => ({
         console.log("Auth state changed:", event);
 
         if (session?.user) {
-          // User logged in - fetch profile
-          const { data: profile } = await supabase
-            .from("users")
-            .select("*")
-            .eq("user_id", session.user.id)
-            .single();
+          // User logged in - fetch profile with retry for background trigger
+          let profile = null;
+          let retries = 5;
+
+          while (!profile && retries > 0) {
+            const { data } = await supabase
+              .from("users")
+              .select("*")
+              .eq("user_id", session.user.id)
+              .single();
+
+            if (data) {
+              profile = data;
+            } else {
+              await new Promise((res) => setTimeout(res, 500));
+              retries--;
+            }
+          }
 
           set({
             user: session.user,
@@ -106,25 +118,28 @@ export const useAuthStore = create((set, get) => ({
 
       if (signUpError) throw signUpError;
 
-      // Create profile in users table
+      if (signUpError) throw signUpError;
+
+      // The profile is now created automatically by the database trigger!
+      // We just need to wait a moment for it to appear and then fetch it.
       if (authData.user) {
-        const { error: profileError } = await supabase.from("users").insert([
-          {
-            user_id: authData.user.id,
-            email: email,
-            full_name: userData.full_name || "",
-            user_type: userData.user_type || "customer",
-          },
-        ]);
+        let profile = null;
+        let retries = 5;
 
-        if (profileError) throw profileError;
+        while (!profile && retries > 0) {
+          const { data } = await supabase
+            .from("users")
+            .select("*")
+            .eq("user_id", authData.user.id)
+            .single();
 
-        // Fetch the created profile
-        const { data: profile } = await supabase
-          .from("users")
-          .select("*")
-          .eq("user_id", authData.user.id)
-          .single();
+          if (data) {
+            profile = data;
+          } else {
+            await new Promise((res) => setTimeout(res, 500)); // Wait 500ms
+            retries--;
+          }
+        }
 
         set({
           user: authData.user,
