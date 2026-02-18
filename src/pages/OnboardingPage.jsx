@@ -118,11 +118,39 @@ const OnboardingPage = () => {
       try {
         if (!user) throw new Error('No user found. Please log in again.');
 
-        // 1. Create/Update Barber Shop
+        // 1. Ensure Profile exists (crucial for OAuth users)
+        let currentProfile = profile;
+        if (!currentProfile) {
+          const { data: newProfile, error: profileError } = await supabase
+            .from('users')
+            .upsert([
+              {
+                user_id: user.id,
+                email: user.email,
+                full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+                user_type: 'customer',
+              },
+            ], { onConflict: 'user_id' })
+            .select()
+            .single();
+
+          if (profileError) throw new Error('Could not create user profile: ' + profileError.message);
+          currentProfile = newProfile;
+        }
+
+        // 2. Update User Profile to 'barber'
+        // This ensures the user has the 'barber' role before creating the shop,
+        // which satisfy Row Level Security (RLS) policies.
+        await updateProfile({
+          phone: shopData.phone,
+          user_type: 'barber'
+        });
+
+        // 3. Create/Update Barber Shop
         const barberData = {
           user_id: user.id,
           name: shopData.name,
-          owner_name: profile?.full_name || user.email?.split('@')[0] || 'Barber',
+          owner_name: currentProfile?.full_name || user.email?.split('@')[0] || 'Barber',
           address: shopData.address,
           phone: shopData.phone,
           image_url: shopData.image_url,
@@ -132,7 +160,7 @@ const OnboardingPage = () => {
 
         const newShop = await createBarberShop(barberData);
 
-        // 2. Create Services
+        // 3. Create Services
         if (newShop && newShop.id) {
           for (const service of services) {
             if (service.name) {
@@ -146,12 +174,6 @@ const OnboardingPage = () => {
             }
           }
         }
-
-        // 3. Update User Profile
-        await updateProfile({
-          phone: shopData.phone,
-          user_type: 'barber'
-        });
 
         navigate('/dashboard');
       } catch (err) {
