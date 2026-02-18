@@ -75,23 +75,54 @@ const OnboardingPage = () => {
     });
   };
 
+  const validateHours = (hours) => {
+    if (hours.length === 0) return true; // Closed is fine
+    const timeRangeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]-([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    return hours.every(h => timeRangeRegex.test(h));
+  };
+
   const nextStep = async () => {
-    if (step < 3) {
-      // Validation could go here
-      setStep(step + 1);
-    } else {
+    setError(null);
+
+    if (step === 1) {
+      if (!shopData.name || !shopData.address || !shopData.phone) {
+        setError('Please fill in all shop details.');
+        return;
+      }
+      setStep(2);
+      return;
+    }
+
+    if (step === 2) {
+      const invalidService = services.find(s => !s.name || isNaN(s.price) || isNaN(s.duration));
+      if (invalidService) {
+        setError('Please ensure all services have a name, valid price, and duration.');
+        return;
+      }
+      setStep(3);
+      return;
+    }
+
+    if (step === 3) {
+      // Validate hours format
+      for (const [day, hours] of Object.entries(availability)) {
+        if (hours.length > 0 && !validateHours(hours)) {
+          setError(`Invalid hours format for ${day}. Please use HH:MM-HH:MM (e.g., 09:00-17:00).`);
+          return;
+        }
+      }
+
       // Save everything
       setLoading(true);
-      setError(null);
 
       try {
-        if (!user) throw new Error('No user found');
+        if (!user) throw new Error('No user found. Please log in again.');
 
         // 1. Create/Update Barber Shop
         const barberData = {
           user_id: user.id,
           name: shopData.name,
-          owner_name: profile?.full_name || '',
+          owner_name: profile?.full_name || user.email?.split('@')[0] || 'Barber',
           address: shopData.address,
           phone: shopData.phone,
           image_url: shopData.image_url,
@@ -125,7 +156,13 @@ const OnboardingPage = () => {
         navigate('/dashboard');
       } catch (err) {
         console.error('Error saving onboarding data:', err);
-        setError(err.message || 'Failed to save shop details. Please try again.');
+        // Better error messages for common Supabase failures
+        if (err.code === '23505') {
+          setError('You already have a shop registered. Redirecting to dashboard...');
+          setTimeout(() => navigate('/dashboard'), 2000);
+        } else {
+          setError(err.message || 'Failed to save shop details. Please verify your info and try again.');
+        }
       } finally {
         setLoading(false);
       }
@@ -318,14 +355,18 @@ const OnboardingPage = () => {
                       <span className="font-bold capitalize w-24">{day}</span>
                     </div>
                     {hours.length > 0 ? (
-                      <div className="flex items-center gap-2">
-                        <Clock size={16} className="text-text-muted" />
-                        <input
-                          type="text"
-                          value={hours[0]}
-                          onChange={(e) => updateHours(day, e.target.value)}
-                          className="bg-white border border-slate-200 rounded-lg px-3 py-1 text-sm font-medium w-32 text-center focus:ring-2 focus:ring-primary outline-none"
-                        />
+                      <div className="flex flex-col items-end gap-1">
+                        <div className="flex items-center gap-2">
+                          <Clock size={16} className="text-text-muted" />
+                          <input
+                            type="text"
+                            value={hours[0]}
+                            onChange={(e) => updateHours(day, e.target.value)}
+                            placeholder="09:00-17:00"
+                            className="bg-white border border-slate-200 rounded-lg px-3 py-1 text-sm font-medium w-32 text-center focus:ring-2 focus:ring-primary outline-none"
+                          />
+                        </div>
+                        <p className="text-[10px] text-text-muted">Format: HH:MM-HH:MM</p>
                       </div>
                     ) : (
                       <span className="text-sm font-medium text-slate-400">Closed</span>
