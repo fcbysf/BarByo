@@ -6,6 +6,7 @@ import { getUpcomingAppointments, getBarberAppointments } from '../services/appo
 import { supabase } from '../lib/supabase';
 import { Scissors, LayoutDashboard, Calendar, Users, Settings, LogOut, Search, Bell, Plus, TrendingUp, CalendarX, MoreVertical, DollarSign, Clock, UserPlus } from 'lucide-react';
 import NotificationDropdown from '../components/NotificationDropdown';
+import Sidebar from '../components/Sidebar';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -98,52 +99,7 @@ const DashboardPage = () => {
   return (
     <div className="flex h-screen bg-background-light">
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-slate-100 flex flex-col p-6">
-        <div className="flex items-center gap-3 mb-10">
-          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-sm">
-            <Scissors className="text-text-main" size={20} />
-          </div>
-          <div>
-            <h1 className="font-bold text-lg leading-tight">BarberPro</h1>
-            <p className="text-[10px] text-text-muted font-black uppercase tracking-widest">Dashboard</p>
-          </div>
-        </div>
-
-        <nav className="flex-1 space-y-2">
-          <Link to="/dashboard" className="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary font-bold text-text-main shadow-sm">
-            <LayoutDashboard size={20} /> Dashboard
-          </Link>
-          <Link to="/schedule" className="flex items-center gap-3 px-4 py-3 rounded-xl text-text-muted font-medium hover:bg-slate-50 transition-all">
-            <Calendar size={20} /> Calendar
-          </Link>
-          <a href="#" className="flex items-center gap-3 px-4 py-3 rounded-xl text-text-muted font-medium hover:bg-slate-50 transition-all">
-            <Scissors size={20} /> Services
-          </a>
-          <a href="#" className="flex items-center gap-3 px-4 py-3 rounded-xl text-text-muted font-medium hover:bg-slate-50 transition-all">
-            <Users size={20} /> Customers
-          </a>
-          <a href="#" className="flex items-center gap-3 px-4 py-3 rounded-xl text-text-muted font-medium hover:bg-slate-50 transition-all">
-            <Settings size={20} /> Settings
-          </a>
-        </nav>
-
-        <div className="pt-6 border-t border-slate-50">
-          <div className="flex items-center gap-3">
-            {profile?.avatar_url ? (
-              <img src={profile.avatar_url} className="w-10 h-10 rounded-full" alt={profile.full_name} />
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center font-bold text-sm">
-                {profile?.full_name?.split(' ').map(n => n[0]).join('') || 'U'}
-              </div>
-            )}
-            <div className="flex-1 overflow-hidden">
-              <p className="text-sm font-bold truncate">{profile?.full_name || user?.email}</p>
-              <p className="text-[10px] text-text-muted uppercase font-black">{profile?.user_type || 'User'}</p>
-            </div>
-            <button onClick={handleLogout} className="text-text-muted hover:text-text-main"><LogOut size={20} /></button>
-          </div>
-        </div>
-      </aside>
+      <Sidebar />
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">

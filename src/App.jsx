@@ -10,6 +10,8 @@ import OnboardingPage from './pages/OnboardingPage';
 import DashboardPage from './pages/DashboardPage';
 import SchedulePage from './pages/SchedulePage';
 import BookingPage from './pages/BookingPage';
+import ServicesPage from './pages/ServicesPage';
+import CustomersPage from './pages/CustomersPage';
 
 const App = () => {
   const initialize = useAuthStore((state) => state.initialize);
@@ -42,6 +44,16 @@ const App = () => {
         <Route path="/schedule" element={
           <ProtectedRoute>
             <SchedulePage />
+          </ProtectedRoute>
+        } />
+        <Route path="/services" element={
+          <ProtectedRoute>
+            <ServicesPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/customers" element={
+          <ProtectedRoute>
+            <CustomersPage />
           </ProtectedRoute>
         } />
 
