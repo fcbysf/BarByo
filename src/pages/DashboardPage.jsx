@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import { getUpcomingAppointments } from '../services/appointmentService';
+import { getUpcomingAppointments, getBarberAppointments } from '../services/appointmentService';
+import { supabase } from '../lib/supabase';
 import { Scissors, LayoutDashboard, Calendar, Users, Settings, LogOut, Search, Bell, Plus, TrendingUp, CalendarX, MoreVertical, DollarSign, Clock, UserPlus } from 'lucide-react';
 
 const DashboardPage = () => {
@@ -10,54 +11,80 @@ const DashboardPage = () => {
   const { user, profile, signOut } = useAuthStore();
 
   const [appointments, setAppointments] = useState([]);
+  const [barberShop, setBarberShop] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   // Fetch appointments on component mount
   useEffect(() => {
-    const fetchAppointments = async () => {
-      if (!profile) {
+    const fetchData = async () => {
+      if (!user) {
         setLoading(false);
         return;
       }
 
       try {
         setLoading(true);
-        const data = await getUpcomingAppointments(profile.id);
-        setAppointments(data);
+
+        if (profile?.user_type === 'barber') {
+          // Barber: fetch their shop and its appointments
+          const { data: shop } = await supabase
+            .from('barbers')
+            .select('*')
+            .eq('user_id', user.id)
+            .single();
+
+          setBarberShop(shop);
+
+          if (shop) {
+            const data = await getBarberAppointments(shop.id);
+            setAppointments(data);
+          }
+        } else {
+          // Customer: fetch their upcoming appointments using auth user id
+          const data = await getUpcomingAppointments(user.id);
+          setAppointments(data);
+        }
       } catch (err) {
-        console.error('Error fetching appointments:', err);
+        console.error('Error fetching data:', err);
         setError(err.message);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchAppointments();
-  }, [profile]);
+    fetchData();
+  }, [user, profile]);
 
   const handleLogout = async () => {
     await signOut();
     navigate('/login');
   };
 
+  const isBarber = profile?.user_type === 'barber';
+  const today = new Date().toISOString().split('T')[0];
+  const todayAppointments = appointments.filter(a => a.appointment_date === today);
+  const todayRevenue = todayAppointments.reduce((sum, apt) => sum + (apt.price || 0), 0);
+
   // Calculate statistics from appointments
   const stats = [
-    { label: "Today's Revenue", value: `$${appointments.reduce((sum, apt) => sum + (apt.price || 0), 0).toFixed(2)}`, trend: "+12%", Icon: DollarSign, color: "text-secondary" },
-    { label: "Total Appointments", value: `${appointments.length} / ${appointments.length + 4}`, trend: "Running Smooth", Icon: Clock, color: "text-primary-text" },
-    { label: "New Customers", value: "2", trend: "+5%", Icon: UserPlus, color: "text-blue-500" }
+    { label: isBarber ? "Today's Revenue" : "Total Spent", value: `$${(isBarber ? todayRevenue : appointments.reduce((sum, apt) => sum + (apt.price || 0), 0)).toFixed(2)}`, trend: isBarber ? `${todayAppointments.length} appts today` : 'All time', Icon: DollarSign, color: "text-secondary" },
+    { label: "Total Appointments", value: `${appointments.length}`, trend: isBarber ? 'This week' : 'Upcoming', Icon: Clock, color: "text-primary-text" },
+    { label: isBarber ? "Shop Status" : "New Bookings", value: isBarber ? (barberShop?.is_active ? 'Active' : 'Inactive') : appointments.filter(a => a.status === 'confirmed').length.toString(), trend: isBarber ? 'Live' : 'Confirmed', Icon: UserPlus, color: "text-blue-500" }
   ];
 
   // Format appointment data for display
   const formattedAppointments = appointments.map((apt) => ({
     id: apt.id,
     time: apt.appointment_time?.slice(0, 5) || 'N/A', // HH:MM
-    customerName: profile?.full_name || 'You',
-    customerInitials: profile?.full_name?.split(' ').map(n => n[0]).join('') || 'U',
+    date: apt.appointment_date,
+    customerName: isBarber ? (apt.users?.full_name || apt.guest_name || 'Walk-in') : (apt.barbers?.name || 'Barbershop'),
+    customerInitials: isBarber
+      ? (apt.users?.full_name || apt.guest_name || 'W').split(' ').map(n => n[0]).join('')
+      : (apt.barbers?.name || 'B').split(' ').map(n => n[0]).join(''),
     service: apt.service,
-    status: apt.status === 'pending' ? 'Pending' : apt.status === 'confirmed' ? 'Confirmed' : 'Checked In',
-    avatar: profile?.avatar_url,
-    barberName: apt.barbers?.name || 'Barbershop',
+    status: apt.status === 'pending' ? 'Pending' : apt.status === 'confirmed' ? 'Confirmed' : apt.status === 'cancelled' ? 'Cancelled' : 'Completed',
+    barberName: apt.barbers?.name || barberShop?.name || 'Barbershop',
   }));
 
   return (
@@ -126,9 +153,15 @@ const DashboardPage = () => {
               <Bell size={20} />
               <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
             </button>
-            <Link to="/book/:shopId" className="bg-primary hover:bg-primary-hover text-text-main px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 shadow-sm transition-all">
-              <Plus size={20} /> Book Appointment
-            </Link>
+            {isBarber ? (
+              <Link to="/schedule" className="bg-primary hover:bg-primary-hover text-text-main px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 shadow-sm transition-all">
+                <Calendar size={20} /> View Schedule
+              </Link>
+            ) : (
+              <Link to="/client" className="bg-primary hover:bg-primary-hover text-text-main px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 shadow-sm transition-all">
+                <Plus size={20} /> Book Appointment
+              </Link>
+            )}
           </div>
         </header>
 
@@ -142,11 +175,12 @@ const DashboardPage = () => {
             />
             <div className="absolute inset-0 bg-gradient-to-r from-slate-900/80 via-slate-900/40 to-transparent flex items-center p-12">
               <div className="text-white">
-                <h3 className="text-3xl font-black mb-2">Welcome, {profile?.full_name || 'User'}!</h3>
+                <h3 className="text-3xl font-black mb-2">Welcome, {profile?.full_name || user?.email?.split('@')[0] || 'User'}!</h3>
                 <p className="text-slate-200">
-                  {loading ? 'Loading appointments...' :
-                    appointments.length > 0 ? `You have ${appointments.length} upcoming appointment${appointments.length !== 1 ? 's' : ''}.` :
-                      'No upcoming appointments. Book one now!'}
+                  {loading ? 'Loading your data...' :
+                    isBarber
+                      ? (barberShop ? `Managing ${barberShop.name} · ${appointments.length} appointment${appointments.length !== 1 ? 's' : ''} this week` : 'Complete your shop setup to start receiving bookings.')
+                      : (appointments.length > 0 ? `You have ${appointments.length} upcoming appointment${appointments.length !== 1 ? 's' : ''}.` : 'No upcoming appointments. Book one now!')}
                 </p>
               </div>
             </div>
@@ -174,7 +208,11 @@ const DashboardPage = () => {
           <div className="bg-white rounded-3xl border border-slate-50 shadow-sm overflow-hidden">
             <div className="p-6 border-b border-slate-50 flex items-center justify-between">
               <h3 className="text-lg font-bold">Upcoming Appointments</h3>
-              <Link to="/schedule" className="text-sm font-bold text-secondary hover:underline">View Calendar</Link>
+              {isBarber ? (
+                <Link to="/schedule" className="text-sm font-bold text-secondary hover:underline">View Calendar</Link>
+              ) : (
+                <Link to="/client" className="text-sm font-bold text-secondary hover:underline">Book New</Link>
+              )}
             </div>
 
             {loading ? (
@@ -190,17 +228,23 @@ const DashboardPage = () => {
               <div className="p-12 text-center">
                 <CalendarX className="text-slate-200 mb-4" size={64} />
                 <p className="text-text-muted text-lg mb-4">No upcoming appointments</p>
-                <Link to="/book/:shopId" className="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-text-main font-bold px-6 py-3 rounded-xl transition-all">
-                  <Plus size={20} /> Book Your First Appointment
-                </Link>
+                {isBarber ? (
+                  <Link to="/schedule" className="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-text-main font-bold px-6 py-3 rounded-xl transition-all">
+                    <Calendar size={20} /> View Schedule
+                  </Link>
+                ) : (
+                  <Link to="/client" className="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-text-main font-bold px-6 py-3 rounded-xl transition-all">
+                    <Plus size={20} /> Book Your First Appointment
+                  </Link>
+                )}
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left">
                   <thead>
                     <tr className="bg-slate-50/50 text-[10px] font-black uppercase tracking-widest text-text-muted">
-                      <th className="px-6 py-4">Time</th>
-                      <th className="px-6 py-4">Barber</th>
+                      <th className="px-6 py-4">Date & Time</th>
+                      <th className="px-6 py-4">{isBarber ? 'Client' : 'Barber'}</th>
                       <th className="px-6 py-4">Service</th>
                       <th className="px-6 py-4">Status</th>
                       <th className="px-6 py-4 text-right">Action</th>
@@ -209,17 +253,29 @@ const DashboardPage = () => {
                   <tbody className="divide-y divide-slate-50">
                     {formattedAppointments.map((a) => (
                       <tr key={a.id} className="group hover:bg-slate-50/30 transition-all">
-                        <td className="px-6 py-5 font-bold text-sm">{a.time}</td>
-                        <td className="px-6 py-5 text-sm">{a.barberName}</td>
+                        <td className="px-6 py-5">
+                          <p className="font-bold text-sm">{a.time}</p>
+                          <p className="text-xs text-text-muted">{a.date}</p>
+                        </td>
+                        <td className="px-6 py-5">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-secondary/20 flex items-center justify-center text-xs font-bold">
+                              {a.customerInitials}
+                            </div>
+                            <span className="text-sm font-medium">{a.customerName}</span>
+                          </div>
+                        </td>
                         <td className="px-6 py-5 text-sm text-text-muted">{a.service}</td>
                         <td className="px-6 py-5">
                           <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${a.status === 'Confirmed' ? 'bg-green-100 text-green-700' :
-                            a.status === 'Pending' ? 'bg-amber-100 text-amber-700' :
-                              'bg-slate-100 text-slate-600'
+                              a.status === 'Pending' ? 'bg-amber-100 text-amber-700' :
+                                a.status === 'Cancelled' ? 'bg-red-100 text-red-700' :
+                                  'bg-slate-100 text-slate-600'
                             }`}>
                             <span className={`w-1.5 h-1.5 rounded-full ${a.status === 'Confirmed' ? 'bg-green-500' :
-                              a.status === 'Pending' ? 'bg-amber-500' :
-                                'bg-slate-400'
+                                a.status === 'Pending' ? 'bg-amber-500' :
+                                  a.status === 'Cancelled' ? 'bg-red-500' :
+                                    'bg-slate-400'
                               }`}></span>
                             {a.status}
                           </span>

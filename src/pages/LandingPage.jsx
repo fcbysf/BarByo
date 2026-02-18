@@ -35,10 +35,10 @@ const LandingPage = () => {
   return (
     <div className="bg-background-light min-h-screen">
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 bg-white border-b border-secondary/10 sticky top-0 z-50">
+      <header className="flex items-center justify-between px-28 py-4 bg-white border-b border-secondary/10 sticky top-0 z-50">
         <div className="flex items-center gap-2">
           <Scissors className="text-secondary" size={28} />
-          <span className="text-xl font-bold tracking-tight">BarberBook</span>
+          <span className="text-xl font-bold tracking-tight">BarByoo</span>
         </div>
         <nav className="hidden md:flex gap-8">
           <a href="#features" className="text-sm font-medium hover:text-secondary transition-colors">Features</a>
@@ -48,7 +48,7 @@ const LandingPage = () => {
           {user ? (
             <>
               <Link to="/dashboard" className="text-sm font-medium hover:text-secondary transition-colors">Dashboard</Link>
-              <Link to="/book/:shopId" className="bg-primary hover:bg-primary-hover text-text-main text-sm font-bold py-2.5 px-5 rounded-xl transition-all shadow-sm">
+              <Link to="/client" className="bg-primary hover:bg-primary-hover text-text-main text-sm font-bold py-2.5 px-5 rounded-xl transition-all shadow-sm">
                 Book a Cut
               </Link>
             </>

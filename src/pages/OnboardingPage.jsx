@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
@@ -119,35 +119,29 @@ const OnboardingPage = () => {
       try {
         if (!user) throw new Error('No user found. Please log in again.');
 
-        // 1. Ensure Profile exists (crucial for OAuth users)
-        let currentProfile = profile;
-        if (!currentProfile) {
-          const { data: newProfile, error: profileError } = await supabase
-            .from('users')
-            .upsert([
-              {
-                user_id: user.id,
-                email: user.email,
-                full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
-                user_type: 'customer',
-              },
-            ], { onConflict: 'user_id' })
-            .select()
-            .single();
+        // 1. Ensure Profile exists and upsert with barber role
+        // We do this directly via supabase (not through the store) so we can
+        // await the DB commit before inserting into barbers (RLS requires user_type='barber')
+        const { data: updatedProfile, error: profileUpsertError } = await supabase
+          .from('users')
+          .upsert([
+            {
+              user_id: user.id,
+              email: user.email,
+              full_name: user.user_metadata?.full_name || profile?.full_name || user.email?.split('@')[0] || 'Barber',
+              phone: shopData.phone,
+              user_type: 'barber', // Set role BEFORE inserting into barbers table
+            },
+          ], { onConflict: 'user_id' })
+          .select()
+          .single();
 
-          if (profileError) throw new Error('Could not create user profile: ' + profileError.message);
-          currentProfile = newProfile;
-        }
+        if (profileUpsertError) throw new Error('Could not update user profile: ' + profileUpsertError.message);
 
-        // 2. Update User Profile to 'barber'
-        // This ensures the user has the 'barber' role before creating the shop,
-        // which satisfy Row Level Security (RLS) policies.
-        await updateProfile({
-          phone: shopData.phone,
-          user_type: 'barber'
-        });
+        const currentProfile = updatedProfile;
 
-        // 3. Create/Update Barber Shop
+        // 2. Create/Update Barber Shop
+        // Now that user_type='barber' is committed in the DB, RLS will allow this insert
         const barberData = {
           user_id: user.id,
           name: shopData.name,
@@ -175,6 +169,9 @@ const OnboardingPage = () => {
             }
           }
         }
+
+        // 4. Update the store's profile state to reflect new role
+        await updateProfile({ user_type: 'barber', phone: shopData.phone });
 
         navigate('/dashboard');
       } catch (err) {

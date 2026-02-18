@@ -28,8 +28,10 @@ const BookingPage = () => {
   const [guestName, setGuestName] = useState('');
   const [guestPhone, setGuestPhone] = useState('');
 
-  // Computed
-  const weekDates = Array.from({ length: 5 }, (_, i) => addDays(selectedDate, i - 2 > 0 ? i - 2 : i));
+  // Computed - show 7 days starting from today
+  const [weekOffset, setWeekOffset] = useState(0);
+  const weekDates = Array.from({ length: 7 }, (_, i) => addDays(startOfToday(), i + weekOffset * 7));
+  const [bookingSuccess, setBookingSuccess] = useState(false);
 
   useEffect(() => {
     if (barberId) {
@@ -100,13 +102,14 @@ const BookingPage = () => {
         notes: !user ? `Guest booking: ${guestName} (${guestPhone})` : ''
       });
 
-      alert('Booking confirmed!');
-      if (user) {
-        navigate('/dashboard');
-      } else {
-        // For guests, maybe just show a success state or go back to home
-        navigate('/');
-      }
+      setBookingSuccess(true);
+      setTimeout(() => {
+        if (user) {
+          navigate('/dashboard');
+        } else {
+          navigate('/');
+        }
+      }, 2500);
     } catch (error) {
       console.error('Booking failed:', error);
       alert('Failed to book appointment: ' + error.message);
@@ -127,7 +130,24 @@ const BookingPage = () => {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4">
         <h2 className="text-2xl font-bold">Barber not found</h2>
-        <button onClick={() => navigate('/dashboard')} className="text-primary hover:underline">Go back home</button>
+        <button onClick={() => navigate('/client')} className="text-primary hover:underline">Browse barbers</button>
+      </div>
+    );
+  }
+
+  if (bookingSuccess) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-6 bg-background-light">
+        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">
+          <svg className="w-10 h-10 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <div className="text-center">
+          <h2 className="text-3xl font-black mb-2">Booking Confirmed!</h2>
+          <p className="text-text-muted">Your appointment at <strong>{barber.name}</strong> is confirmed.</p>
+          <p className="text-sm text-text-muted mt-1">Redirecting you now...</p>
+        </div>
       </div>
     );
   }
@@ -138,12 +158,12 @@ const BookingPage = () => {
     <div className="bg-background-light min-h-screen flex flex-col">
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100 px-8 py-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/dashboard')}>
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/client')}>
             <Scissors className="text-secondary" size={24} />
             <span className="text-xl font-bold tracking-tight">BarberPro</span>
           </div>
-          <button className="flex items-center gap-2 text-sm font-bold bg-slate-50 hover:bg-slate-100 px-4 py-2 rounded-xl transition-all">
-            <Search size={18} /> Search
+          <button className="flex items-center gap-2 text-sm font-bold bg-slate-50 hover:bg-slate-100 px-4 py-2 rounded-xl transition-all" onClick={() => navigate('/client')}>
+            <Search size={18} /> Browse Barbers
           </button>
         </div>
       </header>
@@ -234,9 +254,20 @@ const BookingPage = () => {
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-black">Select Date</h3>
                   <div className="flex gap-2">
-                    <button className="text-text-muted hover:text-text-main"><ChevronLeft size={24} /></button>
-                    <span className="text-xs font-bold uppercase tracking-widest pt-1">{format(selectedDate, 'MMM yyyy')}</span>
-                    <button className="text-text-muted hover:text-text-main"><ChevronRight size={24} /></button>
+                    <button
+                      className="text-text-muted hover:text-text-main disabled:opacity-30"
+                      onClick={() => setWeekOffset(prev => Math.max(0, prev - 1))}
+                      disabled={weekOffset === 0}
+                    >
+                      <ChevronLeft size={24} />
+                    </button>
+                    <span className="text-xs font-bold uppercase tracking-widest pt-1">{format(weekDates[0], 'MMM yyyy')}</span>
+                    <button
+                      className="text-text-muted hover:text-text-main"
+                      onClick={() => setWeekOffset(prev => prev + 1)}
+                    >
+                      <ChevronRight size={24} />
+                    </button>
                   </div>
                 </div>
                 <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
