@@ -46,6 +46,30 @@ const SchedulePage = () => {
     }
   }, [myBarberShop]);
 
+  // Realtime subscription — re-fetch whenever appointments change for this shop
+  useEffect(() => {
+    if (!myBarberShop) return;
+
+    const channel = supabase
+      .channel(`appointments:barber_id=eq.${myBarberShop.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // INSERT, UPDATE, DELETE
+          schema: 'public',
+          table: 'appointments',
+          filter: `barber_id=eq.${myBarberShop.id}`
+        },
+        () => {
+          // Re-fetch whenever anything changes
+          getBarberAppointments(myBarberShop.id).then(setAppointments);
+        }
+      )
+      .subscribe();
+
+    return () => supabase.removeChannel(channel);
+  }, [myBarberShop]);
+
   const fetchMyShopAndAppointments = async () => {
     if (!user) return;
     try {
@@ -99,19 +123,35 @@ const SchedulePage = () => {
       const selectedService = services.find(s => s.name === formData.service);
       const price = selectedService ? selectedService.price : 0;
 
-      await createAppointment({
-        customer_id: user.id,
-        barber_id: myBarberShop.id,
-        appointment_date: formData.date,
-        appointment_time: formData.time + ':00',
-        service: formData.service,
-        price: price,
-        status: 'confirmed',
-        notes: `Walk-in: ${formData.customer_name}`
-      });
+      // Walk-in appointments: customer_id is null (no auth user)
+      // The Realtime subscription will pick this up and update the calendar automatically
+      const { data, error } = await supabase
+        .from('appointments')
+        .insert([{
+          customer_id: null,
+          barber_id: myBarberShop.id,
+          appointment_date: formData.date,
+          appointment_time: formData.time + ':00',
+          service: formData.service,
+          price: price,
+          status: 'confirmed',
+          notes: formData.customer_name ? `Walk-in: ${formData.customer_name}` : 'Walk-in'
+        }])
+        .select()
+        .single();
 
+      if (error) throw error;
+
+      // Optimistically add to local state immediately (Realtime will also fire)
+      setAppointments(prev => [...prev, data]);
       setIsModalOpen(false);
-      fetchMyShopAndAppointments();
+      // Reset form
+      setFormData(prev => ({
+        ...prev,
+        customer_name: '',
+        date: format(new Date(), 'yyyy-MM-dd'),
+        time: '10:00'
+      }));
     } catch (error) {
       console.error('Error creating appointment:', error);
       alert(error.message);
@@ -247,14 +287,14 @@ const SchedulePage = () => {
                           className="absolute left-1 right-1 bg-secondary/15 border-l-4 border-secondary rounded-xl p-3 shadow-sm cursor-pointer hover:bg-secondary/25 transition-all hover:shadow-md z-20 overflow-hidden"
                           style={{ top: `${(hour - 8) * 128 + 4}px`, height: '120px' }}
                         >
-                          <p className="text-xs font-black text-text-main truncate">{apt.users?.full_name || apt.guest_name || 'Walk-in'}</p>
+                          <p className="text-xs font-black text-text-main truncate">{apt.notes?.replace('Walk-in: ', '') || 'Walk-in'}</p>
                           <p className="text-[10px] font-bold text-text-muted mt-1 uppercase truncate">{apt.service}</p>
                           <p className="text-[10px] font-medium text-slate-500 mt-1 flex items-center gap-1">
                             <Clock size={10} /> {apt.appointment_time.slice(0, 5)}
                           </p>
                           <span className={`absolute top-2 right-2 text-[9px] font-black px-1.5 py-0.5 rounded-full ${apt.status === 'confirmed' ? 'bg-green-100 text-green-700' :
-                              apt.status === 'pending' ? 'bg-amber-100 text-amber-700' :
-                                'bg-slate-100 text-slate-500'
+                            apt.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                              'bg-slate-100 text-slate-500'
                             }`}>{apt.status}</span>
                         </div>
                       ));
@@ -278,11 +318,11 @@ const SchedulePage = () => {
             <div className="p-6 space-y-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center font-bold text-sm">
-                  {(selectedAppointment.users?.full_name || selectedAppointment.guest_name || 'W').charAt(0).toUpperCase()}
+                  {(selectedAppointment.notes?.replace('Walk-in: ', '') || 'W').charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <p className="font-bold">{selectedAppointment.users?.full_name || selectedAppointment.guest_name || 'Walk-in'}</p>
-                  <p className="text-xs text-text-muted">{selectedAppointment.users?.email || selectedAppointment.users?.phone || ''}</p>
+                  <p className="font-bold">{selectedAppointment.notes?.replace('Walk-in: ', '') || 'Walk-in'}</p>
+                  <p className="text-xs text-text-muted">{selectedAppointment.notes || ''}</p>
                 </div>
               </div>
               <div className="bg-slate-50 rounded-2xl p-4 space-y-2">
