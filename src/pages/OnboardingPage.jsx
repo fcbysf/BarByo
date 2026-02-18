@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
@@ -38,6 +38,34 @@ const OnboardingPage = () => {
     saturday: ['10:00-16:00'],
     sunday: [],
   });
+
+  // Check if barber already has a shop and redirect to dashboard
+  useEffect(() => {
+    const checkExistingShop = async () => {
+      if (user) {
+        setLoading(true);
+        try {
+          const { data: shop } = await supabase
+            .from('barbers')
+            .select('id')
+            .eq('user_id', user.id)
+            .single();
+
+          if (shop) {
+            // Already onboarded, skip to dashboard
+            navigate('/dashboard', { replace: true });
+          }
+        } catch (err) {
+          // ignore error if no shop found - just proceed with onboarding
+          console.log('No existing shop found or error checking:', err.message);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    checkExistingShop();
+  }, [user, navigate]);
 
   const handleShopChange = (e) => {
     setShopData({

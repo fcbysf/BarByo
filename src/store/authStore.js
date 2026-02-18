@@ -1,12 +1,12 @@
 /**
  * Authentication Store (Zustand)
- * 
+ *
  * Global state management for user authentication.
  * Handles login, signup, logout, and session persistence.
  */
 
-import { create } from 'zustand';
-import { supabase } from '../lib/supabase';
+import { create } from "zustand";
+import { supabase } from "../lib/supabase";
 
 export const useAuthStore = create((set, get) => ({
   // State
@@ -24,16 +24,19 @@ export const useAuthStore = create((set, get) => ({
       set({ loading: true, error: null });
 
       // Check if there's an existing session
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
 
       if (sessionError) throw sessionError;
 
       if (session?.user) {
         // Session exists - fetch user profile
         const { data: profile } = await supabase
-          .from('users')
-          .select('*')
-          .eq('user_id', session.user.id)
+          .from("users")
+          .select("*")
+          .eq("user_id", session.user.id)
           .single();
 
         set({
@@ -47,14 +50,14 @@ export const useAuthStore = create((set, get) => ({
 
       // Listen for auth state changes (login, logout, token refresh)
       supabase.auth.onAuthStateChange(async (event, session) => {
-        console.log('Auth state changed:', event);
+        console.log("Auth state changed:", event);
 
         if (session?.user) {
           // User logged in - fetch profile
           const { data: profile } = await supabase
-            .from('users')
-            .select('*')
-            .eq('user_id', session.user.id)
+            .from("users")
+            .select("*")
+            .eq("user_id", session.user.id)
             .single();
 
           set({
@@ -68,7 +71,7 @@ export const useAuthStore = create((set, get) => ({
         }
       });
     } catch (error) {
-      console.error('Error initializing auth:', error);
+      console.error("Error initializing auth:", error);
       set({ error: error.message, loading: false });
     }
   },
@@ -81,36 +84,36 @@ export const useAuthStore = create((set, get) => ({
       set({ loading: true, error: null });
 
       // Create auth user
-      const { data: authData, error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: userData, // Optional metadata
+      const { data: authData, error: signUpError } = await supabase.auth.signUp(
+        {
+          email,
+          password,
+          options: {
+            data: userData, // Optional metadata
+          },
         },
-      });
+      );
 
       if (signUpError) throw signUpError;
 
       // Create profile in users table
       if (authData.user) {
-        const { error: profileError } = await supabase
-          .from('users')
-          .insert([
-            {
-              user_id: authData.user.id,
-              email: email,
-              full_name: userData.full_name || '',
-              user_type: userData.user_type || 'customer',
-            },
-          ]);
+        const { error: profileError } = await supabase.from("users").insert([
+          {
+            user_id: authData.user.id,
+            email: email,
+            full_name: userData.full_name || "",
+            user_type: userData.user_type || "customer",
+          },
+        ]);
 
         if (profileError) throw profileError;
 
         // Fetch the created profile
         const { data: profile } = await supabase
-          .from('users')
-          .select('*')
-          .eq('user_id', authData.user.id)
+          .from("users")
+          .select("*")
+          .eq("user_id", authData.user.id)
           .single();
 
         set({
@@ -122,7 +125,7 @@ export const useAuthStore = create((set, get) => ({
 
       return { success: true, data: authData };
     } catch (error) {
-      console.error('Sign up error:', error);
+      console.error("Sign up error:", error);
       set({ error: error.message, loading: false });
       return { success: false, error: error.message };
     }
@@ -135,18 +138,19 @@ export const useAuthStore = create((set, get) => ({
     try {
       set({ loading: true, error: null });
 
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { data, error: signInError } =
+        await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
 
       if (signInError) throw signInError;
 
       // Fetch user profile
       const { data: profile } = await supabase
-        .from('users')
-        .select('*')
-        .eq('user_id', data.user.id)
+        .from("users")
+        .select("*")
+        .eq("user_id", data.user.id)
         .single();
 
       set({
@@ -157,7 +161,7 @@ export const useAuthStore = create((set, get) => ({
 
       return { success: true, data };
     } catch (error) {
-      console.error('Sign in error:', error);
+      console.error("Sign in error:", error);
       set({ error: error.message, loading: false });
       return { success: false, error: error.message };
     }
@@ -171,9 +175,9 @@ export const useAuthStore = create((set, get) => ({
       set({ loading: true, error: null });
 
       const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
+        provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/onboarding`,
+          redirectTo: `${window.location.origin}/dashboard`,
         },
       });
 
@@ -183,7 +187,7 @@ export const useAuthStore = create((set, get) => ({
       // The actual user state update happens in the onAuthStateChange listener
       return { success: true, data };
     } catch (error) {
-      console.error('Google sign in error:', error);
+      console.error("Google sign in error:", error);
       set({ error: error.message, loading: false });
       return { success: false, error: error.message };
     }
@@ -204,7 +208,7 @@ export const useAuthStore = create((set, get) => ({
 
       return { success: true };
     } catch (error) {
-      console.error('Sign out error:', error);
+      console.error("Sign out error:", error);
       set({ error: error.message, loading: false });
       return { success: false, error: error.message };
     }
@@ -216,14 +220,14 @@ export const useAuthStore = create((set, get) => ({
   updateProfile: async (updates) => {
     try {
       const { user, profile } = get();
-      if (!user || !profile) throw new Error('Not authenticated');
+      if (!user || !profile) throw new Error("Not authenticated");
 
       set({ loading: true, error: null });
 
       const { data, error } = await supabase
-        .from('users')
+        .from("users")
         .update(updates)
-        .eq('id', profile.id)
+        .eq("id", profile.id)
         .select()
         .single();
 
@@ -233,7 +237,7 @@ export const useAuthStore = create((set, get) => ({
 
       return { success: true, data };
     } catch (error) {
-      console.error('Update profile error:', error);
+      console.error("Update profile error:", error);
       set({ error: error.message, loading: false });
       return { success: false, error: error.message };
     }
@@ -255,7 +259,7 @@ export const useAuthStore = create((set, get) => ({
       set({ loading: false });
       return { success: true };
     } catch (error) {
-      console.error('Reset password error:', error);
+      console.error("Reset password error:", error);
       set({ error: error.message, loading: false });
       return { success: false, error: error.message };
     }
