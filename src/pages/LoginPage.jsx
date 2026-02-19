@@ -1,11 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { Scissors, User, Mail, Lock, Eye, EyeOff, Apple } from 'lucide-react';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { signIn, signInWithGoogle, signUp, user, loading: authLoading } = useAuthStore();
 
   const [isSignUp, setIsSignUp] = useState(false);
@@ -13,6 +14,7 @@ const LoginPage = () => {
     email: '',
     password: '',
     fullName: '',
+    userType: 'customer', // default
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -20,10 +22,25 @@ const LoginPage = () => {
 
   // Redirect to dashboard if already authenticated
   useEffect(() => {
-    if (user && !authLoading) {
-      navigate('/dashboard', { replace: true });
+    // Only redirect if we ARE NOT in the middle of a submission
+    if (user && !authLoading && !loading) {
+      if (profile?.user_type === 'barber' && !isSignUp) {
+        navigate('/dashboard', { replace: true });
+      } else if (profile?.user_type === 'customer') {
+        navigate('/client', { replace: true });
+      }
     }
-  }, [user, authLoading, navigate]);
+  }, [user, authLoading, loading, profile, navigate, isSignUp]);
+
+  // Handle pre-selection from URL
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const role = params.get('role');
+    if (role === 'barber') {
+      setIsSignUp(true);
+      setFormData(prev => ({ ...prev, userType: 'barber' }));
+    }
+  }, [location]);
 
   // Show loading while checking auth status
   if (authLoading) {
@@ -47,10 +64,15 @@ const LoginPage = () => {
         // Sign up flow
         const result = await signUp(formData.email, formData.password, {
           full_name: formData.fullName,
+          user_type: formData.userType,
         });
 
         if (result.success) {
-          navigate('/onboarding');
+          if (formData.userType === 'barber') {
+            navigate('/onboarding');
+          } else {
+            navigate('/client');
+          }
         } else {
           setError(result.error || 'Sign up failed. Please try again.');
         }
@@ -189,6 +211,24 @@ const LoginPage = () => {
                     required={isSignUp}
                   />
                 </div>
+              </div>
+            )}
+            {isSignUp && (
+              <div className="flex gap-4 p-1 bg-slate-50 rounded-2xl mb-2">
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, userType: 'customer' })}
+                  className={`flex-1 py-3 rounded-xl text-xs font-bold transition-all ${formData.userType === 'customer' ? 'bg-white shadow-sm text-text-main' : 'text-text-muted hover:text-text-main'}`}
+                >
+                  Join as Client
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, userType: 'barber' })}
+                  className={`flex-1 py-3 rounded-xl text-xs font-bold transition-all ${formData.userType === 'barber' ? 'bg-primary shadow-sm text-text-main' : 'text-text-muted hover:text-text-main'}`}
+                >
+                  Join as Barber
+                </button>
               </div>
             )}
 

@@ -55,7 +55,7 @@ const LandingPage = () => {
           ) : (
             <>
               <Link to="/login" className="text-sm font-medium">Login</Link>
-              <Link to="/login" className="bg-primary hover:bg-primary-hover text-text-main text-sm font-bold py-2.5 px-5 rounded-xl transition-all shadow-sm">
+              <Link to="/login?role=barber" className="bg-primary hover:bg-primary-hover text-text-main text-sm font-bold py-2.5 px-5 rounded-xl transition-all shadow-sm">
                 Start Free
               </Link>
             </>
@@ -89,7 +89,7 @@ const LandingPage = () => {
             </>
           ) : (
             <>
-              <Link to="/login" className="bg-primary hover:bg-primary-hover text-text-main text-lg font-bold py-4 px-12 rounded-2xl shadow-xl shadow-primary/30 transition-all flex flex-col items-center group">
+              <Link to="/login?role=barber" className="bg-primary hover:bg-primary-hover text-text-main text-lg font-bold py-4 px-12 rounded-2xl shadow-xl shadow-primary/30 transition-all flex flex-col items-center group">
                 <span className="text-xl font-black">I am a Barber</span>
                 <span className="text-xs opacity-70 group-hover:opacity-100 transition-opacity">Manage my Shop</span>
               </Link>
@@ -302,7 +302,7 @@ const LandingPage = () => {
                 Go to Dashboard
               </Link>
             ) : (
-              <Link to="/login" className="bg-primary hover:bg-primary-hover text-text-main text-lg font-bold py-4 px-10 rounded-xl shadow-lg shadow-primary/30 transition-all">
+              <Link to="/login?role=barber" className="bg-primary hover:bg-primary-hover text-text-main text-lg font-bold py-4 px-10 rounded-xl shadow-lg shadow-primary/30 transition-all">
                 Get Started for Free
               </Link>
             )}
