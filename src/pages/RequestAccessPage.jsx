@@ -72,6 +72,7 @@ const RequestAccessPage = () => {
                     // If rejected, allow re-submit
                 }
             } catch (err) {
+                console.error("Error fetching request:", err);
                 // No existing request — that's fine
             } finally {
                 setCheckingExisting(false);
