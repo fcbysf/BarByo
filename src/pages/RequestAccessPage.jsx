@@ -23,7 +23,7 @@ import {
 
 const RequestAccessPage = () => {
     const navigate = useNavigate();
-    const { user, profile } = useAuthStore();
+    const { user, profile, refreshProfile } = useAuthStore();
     const [loading, setLoading] = useState(false);
     const [checkingExisting, setCheckingExisting] = useState(true);
     const [submitted, setSubmitted] = useState(false);
@@ -60,6 +60,12 @@ const RequestAccessPage = () => {
                         return;
                     }
                     if (existing.status === "approved") {
+                        // If approved but role isn't updated yet, refresh profile first
+                        // Next render will hit the check at the top of useEffect
+                        if (profile?.role !== "barber") {
+                            await refreshProfile();
+                            return;
+                        }
                         navigate("/dashboard", { replace: true });
                         return;
                     }

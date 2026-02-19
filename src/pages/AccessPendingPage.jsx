@@ -38,6 +38,15 @@ const AccessPendingPage = () => {
             const data = await getMyAccessRequest(user.id);
             setRequest(data);
 
+            if (data?.status === "approved") {
+                if (profile?.role !== "barber") {
+                    await refreshProfile();
+                    return;
+                }
+                navigate("/dashboard", { replace: true });
+                return;
+            }
+
             if (!data) {
                 // No request found, redirect to request access
                 navigate("/request-access", { replace: true });
@@ -124,10 +133,10 @@ const AccessPendingPage = () => {
                 >
                     <span
                         className={`w-1.5 h-1.5 rounded-full ${request?.status === "pending"
-                                ? "bg-amber-500 animate-pulse"
-                                : request?.status === "rejected"
-                                    ? "bg-red-500"
-                                    : "bg-green-500"
+                            ? "bg-amber-500 animate-pulse"
+                            : request?.status === "rejected"
+                                ? "bg-red-500"
+                                : "bg-green-500"
                             }`}
                     ></span>
                     {request?.status?.charAt(0).toUpperCase() + request?.status?.slice(1)}
