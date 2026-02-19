@@ -187,7 +187,7 @@ const SchedulePage = () => {
       <Sidebar />
       <main className="flex-1 flex flex-col bg-white overflow-hidden">
         {/* Header */}
-        <header className="h-20 flex items-center justify-between px-8 bg-white border-b border-slate-100 shrink-0 z-10">
+        <header className="h-20 flex items-center justify-between px-4 md:px-8 bg-white border-b border-slate-100 shrink-0 z-10 pl-16 md:pl-8">
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-1">
               <h1 className="text-2xl font-bold">Schedule</h1>
@@ -242,7 +242,7 @@ const SchedulePage = () => {
           </div>
 
           {/* Scrollable Area */}
-          <div className="flex-1 overflow-y-auto overflow-x-hidden relative bg-slate-50/30">
+          <div className="flex-1 overflow-y-auto overflow-x-auto relative bg-slate-50/30">
             {loading ? (
               <div className="flex items-center justify-center h-64">
                 <Loader2 className="animate-spin text-primary" size={40} />
@@ -258,7 +258,7 @@ const SchedulePage = () => {
                 </button>
               </div>
             ) : (
-              <div className="flex min-h-[1000px]">
+              <div className="flex min-h-[1000px] min-w-[800px] md:min-w-0">
                 {/* Time Labels */}
                 <div className="w-20 shrink-0 bg-white border-r border-slate-100 flex flex-col">
                   {hours.map((h) => (

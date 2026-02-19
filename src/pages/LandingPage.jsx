@@ -69,7 +69,7 @@ const LandingPage = () => {
           <span className="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
           NEW: AUTOMATED DEPOSITS
         </div>
-        <h1 className="text-5xl md:text-7xl font-black text-text-main mb-6 leading-tight">
+        <h1 className="text-4xl md:text-5xl lg:text-7xl font-black text-text-main mb-6 leading-tight">
           Let Clients Book Your <span className="text-secondary">Chair 24/7</span>
         </h1>
         <p className="text-lg md:text-xl text-text-muted mb-10 max-w-2xl mx-auto">
@@ -128,15 +128,15 @@ const LandingPage = () => {
               </h3>
               <ul className="space-y-4 text-text-muted">
                 <li className="flex gap-3">
-                  <MinusCircle className="text-red-300" size={20} />
+                  <MinusCircle className="text-red-300 shrink-0" size={20} />
                   Phone tag interrupting your cuts constantly.
                 </li>
                 <li className="flex gap-3">
-                  <MinusCircle className="text-red-300" size={20} />
+                  <MinusCircle className="text-red-300 shrink-0" size={20} />
                   No-shows costing you $100s every week.
                 </li>
                 <li className="flex gap-3">
-                  <MinusCircle className="text-red-300" size={20} />
+                  <MinusCircle className="text-red-300 shrink-0" size={20} />
                   Manual reminders sent late at night.
                 </li>
               </ul>
@@ -148,15 +148,15 @@ const LandingPage = () => {
               </h3>
               <ul className="space-y-4 text-text-main font-medium">
                 <li className="flex gap-3">
-                  <CheckCircle2 className="text-secondary" size={20} />
+                  <CheckCircle2 className="text-secondary shrink-0" size={20} />
                   Clients book themselves 24/7 via link.
                 </li>
                 <li className="flex gap-3">
-                  <CheckCircle2 className="text-secondary" size={20} />
+                  <CheckCircle2 className="text-secondary shrink-0" size={20} />
                   Automated deposits reduce no-shows to 0%.
                 </li>
                 <li className="flex gap-3">
-                  <CheckCircle2 className="text-secondary" size={20} />
+                  <CheckCircle2 className="text-secondary shrink-0" size={20} />
                   SMS reminders sent automatically.
                 </li>
               </ul>

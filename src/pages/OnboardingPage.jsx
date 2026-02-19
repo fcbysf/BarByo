@@ -236,7 +236,7 @@ const OnboardingPage = () => {
 
   return (
     <div className="bg-background-light min-h-screen flex flex-col">
-      <header className="flex items-center justify-between px-8 py-4 bg-white border-b border-slate-100">
+      <header className="flex items-center justify-between px-4 md:px-8 py-4 bg-white border-b border-slate-100">
         <div className="flex items-center gap-3">
           <Scissors className="text-secondary" size={24} />
           <span className="text-lg font-bold">BarberPro</span>
@@ -245,26 +245,31 @@ const OnboardingPage = () => {
           <button className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-medium border border-slate-200 rounded-lg hover:bg-slate-50">
             <HelpCircle size={16} /> Help & Support
           </button>
-          <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center font-bold text-sm">JS</div>
+          <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center font-bold text-sm">
+            {profile?.full_name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'U'}
+          </div>
         </div>
       </header>
 
-      <main className="flex-1 max-w-3xl w-full mx-auto py-12 px-6">
-        {/* Stepper */}
-        <div className="relative flex justify-between mb-16 px-10">
-          <div className="absolute top-1/2 left-0 w-full h-0.5 bg-slate-100 -translate-y-1/2 z-0"></div>
-          {[1, 2, 3].map((s) => (
-            <div key={s} className="relative z-10 flex flex-col items-center gap-2">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm border-2 transition-all ${s <= step ? 'bg-primary border-primary text-text-main shadow-md' : 'bg-white border-slate-200 text-slate-400'
-                }`}>
-                {s}
-              </div>
-              <span className={`text-[10px] font-black uppercase tracking-widest ${s <= step ? 'text-text-main' : 'text-slate-400'
-                }`}>
-                {s === 1 ? 'Shop Info' : s === 2 ? 'Services' : 'Hours'}
-              </span>
+      <div className="flex-1 flex flex-col items-center p-4 md:p-8">
+        <div className="w-full max-w-2xl">
+          {/* Progress Steps */}
+          <div className="flex items-center justify-center mb-8 md:mb-12">
+            <div className={`flex items-center gap-2 ${step >= 1 ? 'text-primary' : 'text-slate-300'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${step >= 1 ? 'bg-primary text-text-main' : 'bg-slate-100'}`}>1</div>
+              <span className="font-bold text-sm hidden md:inline">Shop Details</span>
             </div>
-          ))}
+            <div className={`w-8 md:w-16 h-1 rounded-full mx-2 md:mx-4 ${step >= 2 ? 'bg-primary' : 'bg-slate-200'}`}></div>
+            <div className={`flex items-center gap-2 ${step >= 2 ? 'text-primary' : 'text-slate-300'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${step >= 2 ? 'bg-primary text-text-main' : 'bg-slate-100'}`}>2</div>
+              <span className="font-bold text-sm hidden md:inline">Services</span>
+            </div>
+            <div className={`w-8 md:w-16 h-1 rounded-full mx-2 md:mx-4 ${step >= 3 ? 'bg-primary' : 'bg-slate-200'}`}></div>
+            <div className={`flex items-center gap-2 ${step >= 3 ? 'text-primary' : 'text-slate-300'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${step >= 3 ? 'bg-primary text-text-main' : 'bg-slate-100'}`}>3</div>
+              <span className="font-bold text-sm hidden md:inline">Complete</span>
+            </div>
+          </div>
         </div>
 
         {/* Form Card */}
@@ -282,64 +287,60 @@ const OnboardingPage = () => {
 
             {/* Step 1: Shop Info */}
             {step === 1 && (
-              <>
-                <div className="space-y-2">
-                  <label className="block text-sm font-bold text-text-main">Shop Name</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      name="name"
-                      value={shopData.name}
-                      onChange={handleShopChange}
-                      placeholder="The Gentleman's Cut"
-                      className="w-full px-4 py-3.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
-                    />
-                    <CheckCircle2 className="absolute right-4 top-1/2 -translate-y-1/2 text-secondary" size={20} />
-                  </div>
-                  <p className="text-xs text-text-muted">This will be visible on your public booking page.</p>
-                </div>
+              <div className="bg-white rounded-3xl p-6 md:p-10 shadow-sm border border-slate-100">
+                <h2 className="text-2xl font-bold mb-2">Tell us about your shop</h2>
+                <p className="text-text-muted mb-8">This information will be visible to your clients.</p>
 
-                <div className="space-y-2">
-                  <label className="block text-sm font-bold text-text-main">Business Address</label>
-                  <div className="relative">
-                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" size={18} />
-                    <input
-                      type="text"
-                      name="address"
-                      value={shopData.address}
-                      onChange={handleShopChange}
-                      placeholder="Start typing address..."
-                      className="w-full pl-12 pr-4 py-3.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="block text-sm font-bold text-text-main">Business Phone</label>
-                  <div className="flex">
-                    <div className="bg-slate-50 border border-r-0 border-slate-200 rounded-l-xl px-4 flex items-center text-sm font-medium text-text-muted">US +1</div>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={shopData.phone}
-                      onChange={handleShopChange}
-                      placeholder="(555) 000-0000"
-                      className="flex-1 px-4 py-3.5 rounded-r-xl border border-slate-200 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <label className="block text-sm font-bold text-text-main">Shop Logo</label>
-                  <div className="border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center hover:border-secondary transition-all cursor-pointer group">
-                    <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-secondary/10 transition-all">
-                      <Upload className="text-slate-400 group-hover:text-secondary" size={24} />
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-bold text-text-main mb-2">Shop Name</label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        name="name"
+                        value={shopData.name}
+                        onChange={handleShopChange}
+                        placeholder="The Gentleman's Cut"
+                        className="w-full px-4 py-3.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                      />
+                      <CheckCircle2 className="absolute right-4 top-1/2 -translate-y-1/2 text-secondary" size={20} />
                     </div>
-                    <p className="text-sm font-bold"><span className="text-secondary">Upload a file</span> or drag and drop</p>
-                    <p className="text-xs text-text-muted mt-1">PNG, JPG, GIF up to 5MB</p>
+                    <p className="text-xs text-text-muted">This will be visible on your public booking page.</p>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="block text-sm font-bold text-text-main">Business Phone</label>
+                      <div className="flex">
+                        <div className="bg-slate-50 border border-r-0 border-slate-200 rounded-l-xl px-4 flex items-center text-sm font-medium text-text-muted">US +1</div>
+                        <input
+                          type="tel"
+                          name="phone"
+                          value={shopData.phone}
+                          onChange={handleShopChange}
+                          placeholder="(555) 000-0000"
+                          className="flex-1 px-4 py-3.5 rounded-r-xl border border-slate-200 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-sm font-bold text-text-main">Business Address</label>
+                      <div className="relative">
+                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" size={18} />
+                        <input
+                          type="text"
+                          name="address"
+                          value={shopData.address}
+                          onChange={handleShopChange}
+                          placeholder="Start typing address..."
+                          className="w-full pl-12 pr-4 py-3.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </>
+              </div>
             )}
 
             {/* Step 2: Services */}
@@ -459,8 +460,8 @@ const OnboardingPage = () => {
             </div>
           </form>
         </div>
-      </main>
-    </div>
+      </div >
+    </div >
   );
 };
 

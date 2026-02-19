@@ -154,9 +154,15 @@ const LoginPage = () => {
       </div>
 
       {/* Right form */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-8 bg-white">
+      <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-6 md:p-8 bg-white overflow-y-auto">
         <div className="w-full max-w-md">
-          <div className="mb-10 text-center lg:text-left">
+          <div className="mb-10 text-center lg:text-left pt-10 lg:pt-0">
+            {/* Mobile Logo */}
+            <div className="lg:hidden flex justify-center items-center gap-2 mb-6 text-text-main">
+              <Scissors className="text-primary" size={32} />
+              <span className="text-2xl font-bold">BarberPro</span>
+            </div>
+
             <h2 className="text-3xl font-bold mb-3">
               {isSignUp ? 'Create your account' : 'Welcome back'}
             </h2>
