@@ -7,7 +7,7 @@ import { Scissors, User, Mail, Lock, Eye, EyeOff, Apple } from 'lucide-react';
 const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signIn, signInWithGoogle, signUp, user, loading: authLoading } = useAuthStore();
+  const { signIn, signInWithGoogle, signUp, user, profile, loading: authLoading } = useAuthStore();
 
   const [isSignUp, setIsSignUp] = useState(false);
   const [formData, setFormData] = useState({
