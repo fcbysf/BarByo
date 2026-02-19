@@ -217,6 +217,20 @@ const RequestAccessPage = () => {
                         </p>
                     </div>
 
+                    {/* DEBUG SECTION - REMOVE BEFORE PRODUCTION */}
+                    <div className="mb-6 p-4 bg-slate-100 rounded-xl text-xs font-mono text-slate-600 break-all">
+                        <p className="font-bold text-slate-800 mb-1">Debug Info:</p>
+                        <p>User ID: {user?.id}</p>
+                        <p>Role: {profile?.role || "null"}</p>
+                        <p>Request Found: {checkingExisting ? "Checking..." : (submitted ? "Submitted Just Now" : "No (or hidden)")}</p>
+                        <button
+                            onClick={() => window.location.reload()}
+                            className="mt-2 bg-slate-200 hover:bg-slate-300 px-3 py-1 rounded text-slate-800 font-bold transition-colors"
+                        >
+                            Force Refresh Page
+                        </button>
+                    </div>
+
                     {error && (
                         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
                             {error}
