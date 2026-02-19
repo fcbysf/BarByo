@@ -34,9 +34,12 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     // Detect session from URL (used for OAuth callbacks)
     detectSessionInUrl: true,
     // Turn off the Navigator LockManager to avoid timeouts
-    lock: {
-      acquire: () => Promise.resolve(),
-      release: () => Promise.resolve(),
+    // The lock option must be a function that executes the callback
+    lock: (name, acquireTimeout, fn) => {
+      // Handle variable arguments (fn might be 2nd or 3rd arg)
+      const callback =
+        typeof acquireTimeout === "function" ? acquireTimeout : fn;
+      return callback ? callback() : Promise.resolve();
     },
   },
 });
