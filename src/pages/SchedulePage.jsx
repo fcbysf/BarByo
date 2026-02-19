@@ -197,11 +197,11 @@ const SchedulePage = () => {
               </h2>
             </div>
             {myBarberShop && (
-              <span className="hidden md:block text-xs font-bold text-secondary bg-secondary/10 px-3 py-1 rounded-full">
+              <span className="hidden lg:block text-xs font-bold text-secondary bg-secondary/10 px-3 py-1 rounded-full">
                 {myBarberShop.name}
               </span>
             )}
-            <div className="flex bg-slate-50 rounded-full p-1 text-sm font-bold ml-4">
+            <div className="flex bg-slate-50 rounded-full p-1 text-sm font-bold ml-4 hidden md:flex">
               <button className="px-6 py-1.5 bg-white shadow-sm rounded-full">Week</button>
               <button className="px-6 py-1.5 text-text-muted">Day</button>
             </div>
@@ -215,71 +215,74 @@ const SchedulePage = () => {
             <NotificationDropdown shopId={myBarberShop?.id} />
             <button
               onClick={() => setIsModalOpen(true)}
-              className="bg-primary hover:bg-primary-hover text-text-main px-6 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 shadow-sm"
+              className="bg-primary hover:bg-primary-hover text-text-main px-3 md:px-6 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 shadow-sm"
             >
-              <Plus size={20} /> New Appointment
+              <Plus size={20} /> <span className="hidden md:inline">New Appointment</span>
             </button>
           </div>
         </header>
 
         {/* Grid Container */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Days Header */}
-          <div className="flex border-b border-slate-100 bg-white shadow-sm z-10">
-            <div className="w-20 shrink-0 border-r border-slate-100"></div>
-            <div className="flex-1 grid grid-cols-7">
-              {days.map((day, i) => {
-                const isToday = isSameDay(day, new Date());
-                return (
-                  <div key={i} className={`text-center py-6 ${isToday ? 'bg-primary/5 relative' : ''}`}>
-                    <span className="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1">{format(day, 'EEE')}</span>
-                    <span className={`text-xl font-black ${isToday ? 'text-text-main' : 'text-slate-900'}`}>{format(day, 'd')}</span>
-                    {isToday && <div className="absolute bottom-0 left-0 w-full h-1 bg-primary"></div>}
-                  </div>
-                );
-              })}
+        <div className="flex-1 overflow-auto bg-slate-50/30 relative" id="schedule-scroll-container">
+          {loading ? (
+            <div className="flex items-center justify-center h-full">
+              <Loader2 className="animate-spin text-primary" size={40} />
             </div>
-          </div>
+          ) : !myBarberShop ? (
+            <div className="flex flex-col items-center justify-center h-full gap-4">
+              <p className="text-text-muted text-lg">No barber shop found.</p>
+              <button
+                onClick={() => navigate('/onboarding')}
+                className="bg-primary text-text-main font-bold px-6 py-3 rounded-xl"
+              >
+                Complete Setup
+              </button>
+            </div>
+          ) : (
+            <div className="min-w-[800px] md:min-w-0 h-full flex flex-col">
+              {/* Sticky Days Header */}
+              <div className="sticky top-0 z-30 flex border-b border-slate-100 bg-white shadow-sm">
+                {/* Top-Left Corner */}
+                <div className="w-16 md:w-20 shrink-0 border-r border-slate-100 bg-white sticky left-0 z-40"></div>
 
-          {/* Scrollable Area */}
-          <div className="flex-1 overflow-y-auto overflow-x-auto relative bg-slate-50/30">
-            {loading ? (
-              <div className="flex items-center justify-center h-64">
-                <Loader2 className="animate-spin text-primary" size={40} />
+                {/* Days Grid */}
+                <div className="flex-1 grid grid-cols-7">
+                  {days.map((day, i) => {
+                    const isToday = isSameDay(day, new Date());
+                    return (
+                      <div key={i} className={`text-center py-4 md:py-6 ${isToday ? 'bg-primary/5 relative' : ''}`}>
+                        <span className="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1">{format(day, 'EEE')}</span>
+                        <span className={`text-lg md:text-xl font-black ${isToday ? 'text-text-main' : 'text-slate-900'}`}>{format(day, 'd')}</span>
+                        {isToday && <div className="absolute bottom-0 left-0 w-full h-1 bg-primary"></div>}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            ) : !myBarberShop ? (
-              <div className="flex flex-col items-center justify-center h-64 gap-4">
-                <p className="text-text-muted text-lg">No barber shop found.</p>
-                <button
-                  onClick={() => navigate('/onboarding')}
-                  className="bg-primary text-text-main font-bold px-6 py-3 rounded-xl"
-                >
-                  Complete Setup
-                </button>
-              </div>
-            ) : (
-              <div className="flex min-h-[1000px] min-w-[800px] md:min-w-0">
-                {/* Time Labels */}
-                <div className="w-20 shrink-0 bg-white border-r border-slate-100 flex flex-col">
+
+              {/* Scrollable Grid Body */}
+              <div className="flex relative">
+                {/* Sticky Time Column */}
+                <div className="w-16 md:w-20 shrink-0 bg-white border-r border-slate-100 flex flex-col sticky left-0 z-20">
                   {hours.map((h) => (
-                    <div key={h} className="h-32 relative group">
-                      <span className="absolute -top-2.5 right-4 text-[10px] font-black text-text-muted uppercase tracking-widest group-hover:text-text-main">
+                    <div key={h} className="h-32 relative group border-b border-transparent">
+                      <span className="absolute -top-2.5 right-2 md:right-4 text-[10px] font-black text-text-muted uppercase tracking-widest group-hover:text-text-main">
                         {h > 12 ? h - 12 : h} {h >= 12 ? 'PM' : 'AM'}
                       </span>
                     </div>
                   ))}
                 </div>
 
-                {/* Grid Columns */}
+                {/* Main Event Grid */}
                 <div className="flex-1 grid grid-cols-7 divide-x divide-slate-100 relative">
-                  {/* Horizontal Dividers */}
+                  {/* Horizontal Guidelines */}
                   <div className="absolute inset-0 pointer-events-none z-0">
                     {hours.map((h) => (
                       <div key={h} className="h-32 border-b border-slate-100/50"></div>
                     ))}
                   </div>
 
-                  {/* Day Columns */}
+                  {/* Appointments per Day */}
                   {days.map((day, i) => (
                     <div key={i} className="relative h-full z-10">
                       {hours.map(hour => {
@@ -288,7 +291,7 @@ const SchedulePage = () => {
                           <div
                             key={apt.id}
                             onClick={() => setSelectedAppointment(apt)}
-                            className="absolute left-1 right-1 bg-secondary/15 border-l-4 border-secondary rounded-xl p-3 shadow-sm cursor-pointer hover:bg-secondary/25 transition-all hover:shadow-md z-20 overflow-hidden"
+                            className="absolute left-1 right-1 bg-secondary/15 border-l-4 border-secondary rounded-xl p-2 md:p-3 shadow-sm cursor-pointer hover:bg-secondary/25 transition-all hover:shadow-md z-20 overflow-hidden"
                             style={{ top: `${(hour - 8) * 128 + 4}px`, height: '120px' }}
                           >
                             <p className="text-xs font-black text-text-main truncate">{apt.notes?.replace('Walk-in: ', '') || 'Walk-in'}</p>
@@ -296,10 +299,10 @@ const SchedulePage = () => {
                             <p className="text-[10px] font-medium text-slate-500 mt-1 flex items-center gap-1">
                               <Clock size={10} /> {apt.appointment_time.slice(0, 5)}
                             </p>
-                            <span className={`absolute top-2 right-2 text-[9px] font-black px-1.5 py-0.5 rounded-full ${apt.status === 'confirmed' ? 'bg-green-100 text-green-700' :
-                              apt.status === 'pending' ? 'bg-amber-100 text-amber-700' :
-                                'bg-slate-100 text-slate-500'
-                              }`}>{apt.status}</span>
+                            <span className={`absolute top-2 right-2 flex h-2 w-2`}>
+                              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${apt.status === 'confirmed' ? 'bg-green-400' : 'bg-amber-400'}`}></span>
+                              <span className={`relative inline-flex rounded-full h-2 w-2 ${apt.status === 'confirmed' ? 'bg-green-500' : 'bg-amber-500'}`}></span>
+                            </span>
                           </div>
                         ));
                       })}
@@ -307,8 +310,8 @@ const SchedulePage = () => {
                   ))}
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* Appointment Detail Modal */}
