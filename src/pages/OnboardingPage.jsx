@@ -5,7 +5,8 @@ import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
 import { createBarberShop } from '../services/barberService';
 import { createService } from '../services/barberService';
-import { Scissors, HelpCircle, CheckCircle2, MapPin, Upload, ArrowRight, Plus, Trash2, Clock } from 'lucide-react';
+import { uploadLogo } from '../services/storageService';
+import { Scissors, HelpCircle, CheckCircle2, MapPin, Upload, ArrowRight, Plus, Trash2, Clock, Camera } from 'lucide-react';
 
 const OnboardingPage = () => {
   const navigate = useNavigate();
@@ -14,6 +15,8 @@ const OnboardingPage = () => {
   const [loading, setLoading] = useState(false);
   const [checkingShop, setCheckingShop] = useState(true);
   const [error, setError] = useState(null);
+  const [logoFile, setLogoFile] = useState(null);
+  const [logoPreview, setLogoPreview] = useState(null);
 
   // Step 1: Shop Info
   const [shopData, setShopData] = useState({
@@ -91,6 +94,22 @@ const OnboardingPage = () => {
     });
   };
 
+  const handleLogoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        setError('Logo image must be less than 2MB');
+        return;
+      }
+      setLogoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleServiceChange = (index, field, value) => {
     const newServices = [...services];
     newServices[index][field] = value;
@@ -164,6 +183,20 @@ const OnboardingPage = () => {
       try {
         if (!user) throw new Error('No user found. Please log in again.');
 
+        let finalImageUrl = shopData.image_url;
+
+        // Upload logo if selected
+        if (logoFile) {
+          try {
+            const uploadedUrl = await uploadLogo(logoFile, user.id);
+            if (uploadedUrl) {
+              finalImageUrl = uploadedUrl;
+            }
+          } catch (uploadErr) {
+            console.error('Logo upload failed, continuing with default:', uploadErr);
+          }
+        }
+
         // 1. Ensure Profile exists and upsert with barber role
         // We do this directly via supabase (not through the store) so we can
         // await the DB commit before inserting into barbers (RLS requires user_type='barber')
@@ -193,7 +226,7 @@ const OnboardingPage = () => {
           owner_name: currentProfile?.full_name || user.email?.split('@')[0] || 'Barber',
           address: shopData.address,
           phone: shopData.phone,
-          image_url: shopData.image_url,
+          image_url: finalImageUrl,
           availability: availability,
           is_active: true
         };
@@ -290,6 +323,26 @@ const OnboardingPage = () => {
               <div className="bg-white rounded-3xl p-6 md:p-10 shadow-sm border border-slate-100">
                 <h2 className="text-2xl font-bold mb-2">Tell us about your shop</h2>
                 <p className="text-text-muted mb-8">This information will be visible to your clients.</p>
+
+                <div className="mb-8 flex flex-col items-center">
+                  <div className="relative group">
+                    <div className="w-32 h-32 rounded-2xl overflow-hidden bg-slate-100 border-2 border-dashed border-slate-200 flex items-center justify-center transition-all group-hover:border-primary">
+                      {logoPreview ? (
+                        <img src={logoPreview} alt="Logo preview" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="text-center">
+                          <Camera className="mx-auto text-slate-400 mb-1" size={24} />
+                          <span className="text-[10px] font-bold text-text-muted uppercase">Shop Logo</span>
+                        </div>
+                      )}
+                    </div>
+                    <label className="absolute -bottom-2 -right-2 bg-primary text-text-main p-2 rounded-lg shadow-lg cursor-pointer hover:scale-110 transition-all">
+                      <Upload size={16} />
+                      <input type="file" className="hidden" accept="image/*" onChange={handleLogoChange} />
+                    </label>
+                  </div>
+                  <p className="text-xs text-text-muted mt-4">Optional: Upload your shop logo (Max 2MB)</p>
+                </div>
 
                 <div className="space-y-6">
                   <div>

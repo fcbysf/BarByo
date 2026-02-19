@@ -130,9 +130,9 @@ const DashboardPage = () => {
           {/* Hero Banner */}
           <div className="relative h-48 rounded-3xl overflow-hidden shadow-lg">
             <img
-              src="https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&q=80&w=2000"
+              src={barberShop?.image_url || "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&q=80&w=2000"}
               className="w-full h-full object-cover"
-              alt="Barbershop"
+              alt={barberShop?.name || "Barbershop"}
             />
             <div className="absolute inset-0 bg-gradient-to-r from-slate-900/80 via-slate-900/40 to-transparent flex items-center p-12">
               <div className="text-white">
