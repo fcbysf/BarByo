@@ -2,7 +2,8 @@
  * Authentication Store (Zustand)
  *
  * Global state management for user authentication.
- * Handles login, signup, logout, and session persistence.
+ * Handles login, logout, and session persistence.
+ * Role-based access: admin, barber, or null (unapproved).
  */
 
 import { create } from "zustand";
@@ -99,45 +100,120 @@ export const useAuthStore = create((set, get) => ({
   },
 
   /**
-   * Sign up with email and password
+   * Sign in with email and password
    */
-  signUp: async (email, password, userData = {}) => {
+  signIn: async (email, password) => {
     try {
       set({ loading: true, error: null });
 
-      // Create auth user
+      const { data, error: signInError } =
+        await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+      if (signInError) throw signInError;
+
+      // Fetch user profile
+      let profile = null;
+      const { data: existingProfile } = await supabase
+        .from("users")
+        .select("*")
+        .eq("user_id", data.user.id)
+        .single();
+
+      if (existingProfile) {
+        profile = existingProfile;
+      } else {
+        // User exists in auth but not in users table - create profile
+        const { data: newProfile } = await supabase
+          .from("users")
+          .insert([
+            {
+              user_id: data.user.id,
+              email: email,
+              full_name:
+                data.user.user_metadata?.full_name || email.split("@")[0],
+            },
+          ])
+          .select()
+          .single();
+        profile = newProfile;
+      }
+
+      set({
+        user: data.user,
+        profile: profile,
+        loading: false,
+      });
+
+      return { success: true, data, profile };
+    } catch (error) {
+      console.error("Sign in error:", error);
+      set({ error: error.message, loading: false });
+      return { success: false, error: error.message };
+    }
+  },
+
+  /**
+   * Sign up with email and password (creates auth user, profile auto-created)
+   */
+  signUp: async (email, password) => {
+    try {
+      set({ loading: true, error: null });
+
       const { data: authData, error: signUpError } = await supabase.auth.signUp(
         {
           email,
           password,
-          options: {
-            data: userData, // Optional metadata
-          },
         },
       );
 
       if (signUpError) throw signUpError;
 
-      if (signUpError) throw signUpError;
-
-      // The profile is now created automatically by the database trigger!
-      // We just need to wait a moment for it to appear and then fetch it.
+      // Create user profile (role stays null until admin approves)
       if (authData.user) {
         let profile = null;
-        let retries = 5;
+        // Try to find existing profile first
+        const { data: existing } = await supabase
+          .from("users")
+          .select("*")
+          .eq("user_id", authData.user.id)
+          .single();
 
-        while (!profile && retries > 0) {
-          const { data } = await supabase
-            .from("users")
-            .select("*")
-            .eq("user_id", authData.user.id)
-            .single();
+        if (existing) {
+          profile = existing;
+        } else {
+          // Wait for DB trigger / create manually
+          let retries = 5;
+          while (!profile && retries > 0) {
+            const { data } = await supabase
+              .from("users")
+              .select("*")
+              .eq("user_id", authData.user.id)
+              .single();
 
-          if (data) {
-            profile = data;
-          } else {
-            await new Promise((res) => setTimeout(res, 500)); // Wait 500ms
-            retries--;
+            if (data) {
+              profile = data;
+            } else {
+              if (retries === 5) {
+                // Try inserting on first retry
+                const { data: inserted } = await supabase
+                  .from("users")
+                  .insert([
+                    {
+                      user_id: authData.user.id,
+                      email: email,
+                      full_name: email.split("@")[0],
+                    },
+                  ])
+                  .select()
+                  .single();
+                if (inserted) profile = inserted;
+              }
+              await new Promise((res) => setTimeout(res, 500));
+              retries--;
+            }
           }
         }
 
@@ -157,42 +233,6 @@ export const useAuthStore = create((set, get) => ({
   },
 
   /**
-   * Sign in with email and password
-   */
-  signIn: async (email, password) => {
-    try {
-      set({ loading: true, error: null });
-
-      const { data, error: signInError } =
-        await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-      if (signInError) throw signInError;
-
-      // Fetch user profile
-      const { data: profile } = await supabase
-        .from("users")
-        .select("*")
-        .eq("user_id", data.user.id)
-        .single();
-
-      set({
-        user: data.user,
-        profile: profile,
-        loading: false,
-      });
-
-      return { success: true, data };
-    } catch (error) {
-      console.error("Sign in error:", error);
-      set({ error: error.message, loading: false });
-      return { success: false, error: error.message };
-    }
-  },
-
-  /**
    * Sign in with Google OAuth
    */
   signInWithGoogle: async () => {
@@ -202,7 +242,7 @@ export const useAuthStore = create((set, get) => ({
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/dashboard`,
+          redirectTo: `${window.location.origin}/login`,
         },
       });
 
@@ -287,6 +327,26 @@ export const useAuthStore = create((set, get) => ({
       console.error("Reset password error:", error);
       set({ error: error.message, loading: false });
       return { success: false, error: error.message };
+    }
+  },
+
+  /**
+   * Refresh user profile from database
+   */
+  refreshProfile: async () => {
+    try {
+      const { user } = get();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from("users")
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
+
+      set({ profile });
+    } catch (error) {
+      console.error("Refresh profile error:", error);
     }
   },
 }));

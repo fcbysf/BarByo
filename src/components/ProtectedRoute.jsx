@@ -1,16 +1,17 @@
 /**
  * Protected Route Component
- * 
+ *
  * Wraps routes that require authentication.
- * Redirects to login page if user is not authenticated.
+ * Supports role-based access control via requiredRole prop.
+ * Redirects unauthenticated users to login, and unauthorized users based on their role.
  */
 
-import { useEffect } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
-import { useAuthStore } from '../store/authStore';
+import { useEffect } from "react";
+import { Navigate, useLocation } from "react-router-dom";
+import { useAuthStore } from "../store/authStore";
 
-const ProtectedRoute = ({ children }) => {
-    const { user, loading, initialize } = useAuthStore();
+const ProtectedRoute = ({ children, requiredRole = null }) => {
+    const { user, profile, loading, initialize } = useAuthStore();
     const location = useLocation();
 
     // Initialize auth state on mount
@@ -20,7 +21,9 @@ const ProtectedRoute = ({ children }) => {
         // Safety: if it's still loading after 6 seconds, something is wrong
         const timer = setTimeout(() => {
             if (loading) {
-                console.warn('ProtectedRoute: Auth still loading after 6s, forcing render');
+                console.warn(
+                    "ProtectedRoute: Auth still loading after 6s, forcing render",
+                );
                 useAuthStore.setState({ loading: false });
             }
         }, 6000);
@@ -45,7 +48,24 @@ const ProtectedRoute = ({ children }) => {
         return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
-    // User is authenticated, render the protected content
+    // Role-based access control
+    if (requiredRole) {
+        const userRole = profile?.role;
+
+        if (userRole !== requiredRole) {
+            // Redirect based on actual role
+            if (userRole === "admin") {
+                return <Navigate to="/admin" replace />;
+            } else if (userRole === "barber") {
+                return <Navigate to="/dashboard" replace />;
+            } else {
+                // No role — redirect to request access
+                return <Navigate to="/request-access" replace />;
+            }
+        }
+    }
+
+    // User is authenticated and authorized, render the protected content
     return children;
 };
 

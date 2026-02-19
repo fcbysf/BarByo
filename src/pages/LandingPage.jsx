@@ -9,26 +9,27 @@ const LandingPage = () => {
 
   const plans = [
     {
-      name: "Solo Barber",
+      name: "7-Day Free Trial",
       price: "Free",
-      description: "Perfect for barbers just starting to build their client base.",
-      features: ["1 Barber Calendar", "Unlimited Appts", "Online Booking Page"],
-      cta: "Get Started"
+      description: "Try all features free for 7 days after admin approval.",
+      features: ["Full Dashboard Access", "Online Booking Page", "Calendar Management", "Client Management"],
+      cta: "Request Access"
     },
     {
-      name: "Pro Barber",
-      price: "$29",
-      description: "Everything you need to automate your busy schedule.",
-      features: ["Everything in Free", "Automated SMS Reminders", "Deposit Collection", "Client CRM & Notes"],
-      cta: "Start Free Trial",
+      name: "Monthly",
+      price: "$10",
+      description: "Full access, billed monthly. Cancel anytime.",
+      features: ["Everything in Trial", "Unlimited Bookings", "Client CRM & Notes", "Priority Support"],
+      cta: "Request Access",
       popular: true
     },
     {
-      name: "Barbershop",
-      price: "$79",
-      description: "Management tools for shop owners with multiple seats.",
-      features: ["Up to 5 Barbers", "Shop Performance Reports", "Payroll Assistant", "Inventory Management"],
-      cta: "Contact Sales"
+      name: "6 Months",
+      price: "$40",
+      description: "Save 33% with our best value plan.",
+      features: ["Everything in Monthly", "6-Month Lock-in Savings", "Early Feature Access", "Dedicated Support"],
+      cta: "Request Access",
+      savings: "Save 33%"
     }
   ];
 
@@ -55,8 +56,8 @@ const LandingPage = () => {
           ) : (
             <>
               <Link to="/login" className="text-sm font-medium">Login</Link>
-              <Link to="/login?role=barber" className="bg-primary hover:bg-primary-hover text-text-main text-sm font-bold py-2.5 px-5 rounded-xl transition-all shadow-sm">
-                Start Free
+              <Link to="/login" className="bg-primary hover:bg-primary-hover text-text-main text-sm font-bold py-2.5 px-5 rounded-xl transition-all shadow-sm">
+                Request Access
               </Link>
             </>
           )}
@@ -89,9 +90,9 @@ const LandingPage = () => {
             </>
           ) : (
             <>
-              <Link to="/login?role=barber" className="bg-primary hover:bg-primary-hover text-text-main text-lg font-bold py-4 px-12 rounded-2xl shadow-xl shadow-primary/30 transition-all flex flex-col items-center group">
+              <Link to="/login" className="bg-primary hover:bg-primary-hover text-text-main text-lg font-bold py-4 px-12 rounded-2xl shadow-xl shadow-primary/30 transition-all flex flex-col items-center group">
                 <span className="text-xl font-black">I am a Barber</span>
-                <span className="text-xs opacity-70 group-hover:opacity-100 transition-opacity">Manage my Shop</span>
+                <span className="text-xs opacity-70 group-hover:opacity-100 transition-opacity">Request Access & Try Free</span>
               </Link>
               <Link to="/client" className="bg-white border-2 border-slate-200 text-text-main text-lg font-bold py-4 px-12 rounded-2xl hover:border-secondary transition-all flex flex-col items-center group">
                 <span className="text-xl font-black">I am a Client</span>
@@ -294,7 +295,7 @@ const LandingPage = () => {
         <div className="max-w-4xl mx-auto px-4 text-center relative z-10">
           <h2 className="text-4xl md:text-5xl font-black mb-6">Ready to Fill Your Chair?</h2>
           <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-            Join thousands of barbers who have taken control of their schedule and income. Start your 14-day free trial today.
+            Join thousands of barbers who have taken control of their schedule and income. Start your 7-day free trial today.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             {user ? (
@@ -302,8 +303,8 @@ const LandingPage = () => {
                 Go to Dashboard
               </Link>
             ) : (
-              <Link to="/login?role=barber" className="bg-primary hover:bg-primary-hover text-text-main text-lg font-bold py-4 px-10 rounded-xl shadow-lg shadow-primary/30 transition-all">
-                Get Started for Free
+              <Link to="/login" className="bg-primary hover:bg-primary-hover text-text-main text-lg font-bold py-4 px-10 rounded-xl shadow-lg shadow-primary/30 transition-all">
+                Request Access — 7 Days Free
               </Link>
             )}
             <p className="text-xs text-slate-400 mt-4 sm:mt-0 sm:absolute sm:-bottom-12">No credit card required. Cancel anytime.</p>

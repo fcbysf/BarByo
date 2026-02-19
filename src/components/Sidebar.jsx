@@ -1,22 +1,95 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Scissors, LayoutDashboard, Calendar, Users, Settings, LogOut, Menu, X } from 'lucide-react';
+import { Scissors, LayoutDashboard, Calendar, Users, Settings, LogOut, Menu, X, Clock, CreditCard } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
+import { supabase } from '../lib/supabase';
 
 const Sidebar = () => {
     const { user, profile, signOut } = useAuthStore();
     const location = useLocation();
     const [isOpen, setIsOpen] = React.useState(false);
+    const [subscriptionInfo, setSubscriptionInfo] = useState(null);
 
     const menuItems = [
         { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
         { path: '/schedule', label: 'Calendar', icon: Calendar },
         { path: '/services', label: 'Services', icon: Scissors },
         { path: '/customers', label: 'Customers', icon: Users },
-        { path: '/settings', label: 'Settings', icon: Settings },
     ];
 
     const isActive = (path) => location.pathname === path;
+
+    // Fetch subscription status
+    useEffect(() => {
+        const fetchSubscription = async () => {
+            if (!user || profile?.role !== 'barber') return;
+
+            try {
+                const { data: shop } = await supabase
+                    .from('barbers')
+                    .select('subscription_status, trial_end_date, subscription_end_date')
+                    .eq('user_id', user.id)
+                    .single();
+
+                if (shop) {
+                    setSubscriptionInfo(shop);
+                }
+            } catch (err) {
+                console.error('Error fetching subscription:', err);
+            }
+        };
+        fetchSubscription();
+    }, [user, profile]);
+
+    // Calculate trial days remaining
+    const getTrialDays = () => {
+        if (!subscriptionInfo?.trial_end_date) return null;
+        const end = new Date(subscriptionInfo.trial_end_date);
+        const now = new Date();
+        const diff = Math.ceil((end - now) / (1000 * 60 * 60 * 24));
+        return Math.max(0, diff);
+    };
+
+    const subscriptionBadge = () => {
+        if (!subscriptionInfo) return null;
+
+        const status = subscriptionInfo.subscription_status;
+        const trialDays = getTrialDays();
+
+        if (status === 'trial') {
+            return (
+                <div className="bg-blue-50 rounded-xl p-3 mb-4 border border-blue-100">
+                    <div className="flex items-center gap-2 mb-1">
+                        <Clock size={14} className="text-blue-500" />
+                        <span className="text-xs font-bold text-blue-700">Free Trial</span>
+                    </div>
+                    <p className="text-xs text-blue-600">
+                        {trialDays > 0 ? `${trialDays} day${trialDays !== 1 ? 's' : ''} remaining` : 'Trial expired'}
+                    </p>
+                </div>
+            );
+        }
+
+        if (status === 'active') {
+            return (
+                <div className="bg-green-50 rounded-xl p-3 mb-4 border border-green-100">
+                    <div className="flex items-center gap-2">
+                        <CreditCard size={14} className="text-green-500" />
+                        <span className="text-xs font-bold text-green-700">Active Subscription</span>
+                    </div>
+                </div>
+            );
+        }
+
+        return (
+            <div className="bg-red-50 rounded-xl p-3 mb-4 border border-red-100">
+                <div className="flex items-center gap-2">
+                    <CreditCard size={14} className="text-red-500" />
+                    <span className="text-xs font-bold text-red-700">Subscription Inactive</span>
+                </div>
+            </div>
+        );
+    };
 
     return (
         <>
@@ -61,6 +134,9 @@ const Sidebar = () => {
                     </button>
                 </div>
 
+                {/* Subscription Status */}
+                {subscriptionBadge()}
+
                 <nav className="flex-1 space-y-2">
                     {menuItems.map((item) => {
                         const ActiveIcon = item.icon;
@@ -69,7 +145,7 @@ const Sidebar = () => {
                             <Link
                                 key={item.path}
                                 to={item.path}
-                                onClick={() => setIsOpen(false)} // Close on navigate
+                                onClick={() => setIsOpen(false)}
                                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${active
                                     ? 'bg-primary font-bold text-text-main shadow-sm'
                                     : 'text-text-muted hover:bg-slate-50'
@@ -103,7 +179,7 @@ const Sidebar = () => {
                         )}
                         <div className="flex-1 overflow-hidden">
                             <p className="text-sm font-bold truncate">{profile?.full_name || user?.email}</p>
-                            <p className="text-[10px] text-text-muted uppercase font-black">{profile?.user_type || 'User'}</p>
+                            <p className="text-[10px] text-text-muted uppercase font-black">{profile?.role || 'Barber'}</p>
                         </div>
                         <button onClick={() => signOut()} className="text-text-muted hover:text-text-main"><LogOut size={20} /></button>
                     </div>

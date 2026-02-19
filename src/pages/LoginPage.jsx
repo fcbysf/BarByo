@@ -1,48 +1,54 @@
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import { Scissors, User, Mail, Lock, Eye, EyeOff, Apple } from 'lucide-react';
+import { getMyAccessRequest } from '../services/accessRequestService';
+import { Scissors, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signIn, signInWithGoogle, signUp, user, profile, loading: authLoading } = useAuthStore();
+  const { signIn, signUp, signInWithGoogle, user, profile, loading: authLoading } = useAuthStore();
 
   const [isSignUp, setIsSignUp] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    fullName: '',
-    userType: 'customer', // default
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  // Redirect to dashboard if already authenticated
+  // Handle role-based redirect when user state changes
   useEffect(() => {
-    // Only redirect if we ARE NOT in the middle of a submission
-    if (user && !authLoading && !loading) {
-      if (profile?.user_type === 'barber' && !isSignUp) {
-        navigate('/dashboard', { replace: true });
-      } else if (profile?.user_type === 'customer') {
-        navigate('/client', { replace: true });
+    const handleRedirect = async () => {
+      if (user && !authLoading && !loading) {
+        const role = profile?.role;
+
+        if (role === 'admin') {
+          navigate('/admin', { replace: true });
+        } else if (role === 'barber') {
+          navigate('/dashboard', { replace: true });
+        } else {
+          // No role — check if they have a pending request
+          try {
+            const request = await getMyAccessRequest(user.id);
+            if (request && request.status === 'pending') {
+              navigate('/access-pending', { replace: true });
+            } else {
+              navigate('/request-access', { replace: true });
+            }
+          } catch {
+            navigate('/request-access', { replace: true });
+          }
+        }
       }
-    }
-  }, [user, authLoading, loading, profile, navigate, isSignUp]);
+    };
 
-  // Handle pre-selection from URL
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const role = params.get('role');
-    if (role === 'barber') {
-      setIsSignUp(true);
-      setFormData(prev => ({ ...prev, userType: 'barber' }));
-    }
-  }, [location]);
+    handleRedirect();
+  }, [user, authLoading, loading, profile, navigate]);
 
-  // Show loading while checking auth status
+  // Show loading while checking auth status on page load
   if (authLoading) {
     return (
       <div className="flex items-center justify-center h-screen bg-background-light">
@@ -60,35 +66,20 @@ const LoginPage = () => {
     setLoading(true);
 
     try {
+      let result;
       if (isSignUp) {
-        // Sign up flow
-        const result = await signUp(formData.email, formData.password, {
-          full_name: formData.fullName,
-          user_type: formData.userType,
-        });
-
-        if (result.success) {
-          if (formData.userType === 'barber') {
-            navigate('/onboarding');
-          } else {
-            navigate('/client');
-          }
-        } else {
-          setError(result.error || 'Sign up failed. Please try again.');
-        }
+        result = await signUp(formData.email, formData.password);
       } else {
-        // Sign in flow
-        const result = await signIn(formData.email, formData.password);
-
-        if (result.success) {
-          navigate('/dashboard');
-        } else {
-          setError(result.error || 'Invalid email or password.');
-        }
+        result = await signIn(formData.email, formData.password);
       }
+
+      if (!result.success) {
+        setError(result.error || 'Authentication failed. Please try again.');
+        setLoading(false);
+      }
+      // Role-based redirect happens in useEffect above
     } catch (err) {
       setError(err.message || 'An error occurred. Please try again.');
-    } finally {
       setLoading(false);
     }
   };
@@ -104,7 +95,6 @@ const LoginPage = () => {
         setError(result.error || 'Google sign in failed.');
         setLoading(false);
       }
-      // Note: Google OAuth redirects - loading state remains until redirect
     } catch (err) {
       setError(err.message || 'An error occurred. Please try again.');
       setLoading(false);
@@ -168,8 +158,8 @@ const LoginPage = () => {
             </h2>
             <p className="text-text-muted">
               {isSignUp
-                ? 'Sign up to start managing your bookings.'
-                : 'Please enter your details to sign in.'}
+                ? 'Sign up to request access to the platform.'
+                : 'Sign in to your BarberPro account.'}
             </p>
           </div>
 
@@ -180,64 +170,22 @@ const LoginPage = () => {
             </div>
           )}
 
-          <div className="flex gap-4 mb-8">
-            <button
-              onClick={handleGoogleSignIn}
-              disabled={loading}
-              className="flex-1 flex items-center justify-center gap-2 border border-slate-200 py-2.5 rounded-xl hover:bg-slate-50 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="google" /> Google
-            </button>
-            <button
-              disabled
-              className="flex-1 flex items-center justify-center gap-2 border border-slate-200 py-2.5 rounded-xl bg-slate-50 transition-all font-medium opacity-50 cursor-not-allowed"
-            >
-              <Apple size={20} /> Apple
-            </button>
-          </div>
+          {/* Google Sign In */}
+          <button
+            onClick={handleGoogleSignIn}
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-3 border border-slate-200 py-3 rounded-xl hover:bg-slate-50 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed mb-6"
+          >
+            <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="google" />
+            Continue with Google
+          </button>
 
-          <div className="relative mb-8 text-center">
+          <div className="relative mb-6 text-center">
             <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-100"></div></div>
             <span className="relative px-4 bg-white text-sm text-text-muted">Or continue with email</span>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {isSignUp && (
-              <div>
-                <label className="block text-sm font-bold text-text-main mb-2">Full Name</label>
-                <div className="relative">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" size={18} />
-                  <input
-                    type="text"
-                    name="fullName"
-                    value={formData.fullName}
-                    onChange={handleInputChange}
-                    placeholder="John Doe"
-                    className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
-                    required={isSignUp}
-                  />
-                </div>
-              </div>
-            )}
-            {isSignUp && (
-              <div className="flex gap-4 p-1 bg-slate-50 rounded-2xl mb-2">
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ...formData, userType: 'customer' })}
-                  className={`flex-1 py-3 rounded-xl text-xs font-bold transition-all ${formData.userType === 'customer' ? 'bg-white shadow-sm text-text-main' : 'text-text-muted hover:text-text-main'}`}
-                >
-                  Join as Client
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ...formData, userType: 'barber' })}
-                  className={`flex-1 py-3 rounded-xl text-xs font-bold transition-all ${formData.userType === 'barber' ? 'bg-primary shadow-sm text-text-main' : 'text-text-muted hover:text-text-main'}`}
-                >
-                  Join as Barber
-                </button>
-              </div>
-            )}
-
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-sm font-bold text-text-main mb-2">Email Address</label>
               <div className="relative">
@@ -286,19 +234,12 @@ const LoginPage = () => {
               )}
             </div>
 
-            {!isSignUp && (
-              <div className="flex items-center gap-2">
-                <input type="checkbox" id="rem" className="rounded text-secondary focus:ring-secondary w-4 h-4" />
-                <label htmlFor="rem" className="text-sm text-text-muted">Remember me for 30 days</label>
-              </div>
-            )}
-
             <button
               type="submit"
               disabled={loading}
               className="w-full py-4 bg-primary hover:bg-primary-hover text-text-main font-black rounded-xl shadow-lg shadow-primary/30 transition-all transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Please wait...' : (isSignUp ? 'Sign Up' : 'Log In')}
+              {loading ? 'Please wait...' : (isSignUp ? 'Create Account' : 'Sign In')}
             </button>
           </form>
 
@@ -308,7 +249,7 @@ const LoginPage = () => {
               onClick={() => {
                 setIsSignUp(!isSignUp);
                 setError('');
-                setFormData({ email: '', password: '', fullName: '' });
+                setFormData({ email: '', password: '' });
               }}
               className="text-secondary font-bold hover:underline"
             >
