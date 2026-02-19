@@ -79,6 +79,17 @@ const Sidebar = () => {
                             </Link>
                         );
                     })}
+
+                    {/* Mobile Only Logout Button */}
+                    <button
+                        onClick={() => {
+                            signOut();
+                            setIsOpen(false);
+                        }}
+                        className="md:hidden flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-red-500 hover:bg-red-50 w-full mt-4 border border-red-100"
+                    >
+                        <LogOut size={20} /> Logout
+                    </button>
                 </nav>
 
                 <div className="pt-6 border-t border-slate-50">
