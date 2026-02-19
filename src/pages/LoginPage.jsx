@@ -22,8 +22,13 @@ const LoginPage = () => {
   // Handle role-based redirect when user state changes
   useEffect(() => {
     const handleRedirect = async () => {
+      // Wait until auth is resolved AND profile is loaded
+      // profile being null while user exists means it's still loading
       if (user && !authLoading && !loading) {
-        const role = profile?.role;
+        // If profile hasn't loaded yet, don't redirect — wait for it
+        if (!profile) return;
+
+        const role = profile.role;
 
         if (role === 'admin') {
           navigate('/admin', { replace: true });
