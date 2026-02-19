@@ -50,18 +50,6 @@ const ProtectedRoute = ({ children, requiredRole = null }) => {
 
     // If a role is required, we need the profile to be loaded before deciding
     if (requiredRole) {
-        // Profile hasn't loaded yet — wait (show loading)
-        if (user && !profile) {
-            return (
-                <div className="flex items-center justify-center h-screen bg-background-light">
-                    <div className="text-center">
-                        <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                        <p className="text-text-muted font-medium">Loading profile...</p>
-                    </div>
-                </div>
-            );
-        }
-
         const userRole = profile?.role;
 
         if (userRole !== requiredRole) {
