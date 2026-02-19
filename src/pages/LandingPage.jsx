@@ -35,7 +35,7 @@ const LandingPage = () => {
   return (
     <div className="bg-background-light min-h-screen">
       {/* Header */}
-      <header className="flex items-center justify-between px-28 py-4 bg-white border-b border-secondary/10 sticky top-0 z-50">
+      <header className="flex items-center justify-between px-16 md:px-28 py-4 bg-white border-b border-secondary/10 sticky top-0 z-50">
         <div className="flex items-center gap-2">
           <Scissors className="text-secondary" size={28} />
           <span className="text-xl font-bold tracking-tight">BarByoo</span>
