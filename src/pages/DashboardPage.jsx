@@ -7,6 +7,7 @@ import { supabase } from '../lib/supabase';
 import { Scissors, LayoutDashboard, Calendar, Users, Settings, LogOut, Search, Bell, Plus, TrendingUp, CalendarX, MoreVertical, DollarSign, Clock, UserPlus } from 'lucide-react';
 import NotificationDropdown from '../components/NotificationDropdown';
 import Sidebar from '../components/Sidebar';
+import { useFadeIn, useStagger } from '../hooks/useAnimations';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -16,6 +17,13 @@ const DashboardPage = () => {
   const [barberShop, setBarberShop] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Animation Refs
+  const mainRef = React.useRef(null);
+  const containerRef = React.useRef(null);
+
+  useFadeIn(mainRef, [loading], { y: 20 });
+  useStagger(containerRef, '.gsap-card', [loading], { y: 30, stagger: 0.1 });
 
   // Fetch appointments on component mount
   useEffect(() => {
@@ -116,7 +124,7 @@ const DashboardPage = () => {
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-8 max-w-7xl mx-auto w-full space-y-8">
+        <div className="flex-1 overflow-y-auto p-8 max-w-7xl mx-auto w-full space-y-8" ref={mainRef}>
           {/* Hero Banner */}
           <div className="relative h-48 rounded-3xl overflow-hidden shadow-lg">
             <img
@@ -136,9 +144,9 @@ const DashboardPage = () => {
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6" ref={containerRef}>
             {stats.map((s) => (
-              <div key={s.label} className="bg-white p-6 rounded-3xl border border-slate-50 shadow-sm flex flex-col justify-between h-32 relative overflow-hidden group hover:border-secondary transition-all">
+              <div key={s.label} className="gsap-card bg-white p-6 rounded-3xl border border-slate-50 shadow-sm flex flex-col justify-between h-32 relative overflow-hidden group hover:border-secondary transition-all">
                 <div className="z-10 flex flex-col justify-between h-full">
                   <div>
                     <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-1">{s.label}</p>
@@ -193,9 +201,9 @@ const DashboardPage = () => {
                       <th className="px-6 py-4 text-right">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-50">
+                  <tbody className="divide-y divide-slate-50 relative" ref={containerRef}>
                     {formattedAppointments.map((a) => (
-                      <tr key={a.id} className="group hover:bg-slate-50/30 transition-all">
+                      <tr key={a.id} className="gsap-card group hover:bg-slate-50/30 transition-all">
                         <td className="px-6 py-5">
                           <p className="font-bold text-sm">{a.time}</p>
                           <p className="text-xs text-text-muted">{a.date}</p>

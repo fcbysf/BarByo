@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { getBarberAppointments, createAppointment, deleteAppointment } from '../services/appointmentService';
@@ -9,6 +9,7 @@ import { ArrowLeft, ChevronLeft, ChevronRight, Plus, X, User, Scissors, Clock, C
 import NotificationDropdown from '../components/NotificationDropdown';
 import Sidebar from '../components/Sidebar';
 import { format, startOfWeek, addDays, subDays, isSameDay, parseISO } from 'date-fns';
+import { useStagger, useFadeIn } from '../hooks/useAnimations';
 
 const SchedulePage = () => {
   const navigate = useNavigate();
@@ -36,6 +37,12 @@ const SchedulePage = () => {
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 }); // Monday start
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
   const hours = Array.from({ length: 13 }, (_, i) => i + 8); // 8 AM to 8 PM
+
+  // GSAP Animation Refs
+  const gridRef = React.useRef(null);
+
+  useFadeIn(gridRef, [currentDate, appointments.length]);
+  useStagger(gridRef, '.gsap-appointment', [currentDate, appointments.length], { y: 15, duration: 0.4, stagger: 0.03 });
 
   // Fetch Data
   useEffect(() => {
@@ -255,7 +262,7 @@ const SchedulePage = () => {
               </div>
 
               {/* Scrollable Grid Body */}
-              <div className="flex relative">
+              <div className="flex relative pt-4" ref={gridRef}>
                 {/* Sticky Time Column */}
                 <div className="w-16 md:w-20 shrink-0 bg-white border-r border-slate-100 flex flex-col sticky left-0 z-20">
                   {hours.map((h) => (
@@ -285,7 +292,7 @@ const SchedulePage = () => {
                           <div
                             key={apt.id}
                             onClick={() => setSelectedAppointment(apt)}
-                            className="absolute left-1 right-1 bg-secondary/15 border-l-4 border-secondary rounded-xl p-2 md:p-3 shadow-sm cursor-pointer hover:bg-secondary/25 transition-all hover:shadow-md z-20 overflow-hidden"
+                            className="gsap-appointment absolute left-1 right-1 bg-secondary/15 border-l-4 border-secondary rounded-xl p-2 md:p-3 shadow-sm cursor-pointer hover:bg-secondary/25 transition-all hover:shadow-md z-20 overflow-hidden"
                             style={{ top: `${(hour - 8) * 128 + 4}px`, height: '120px' }}
                           >
                             <p className="text-xs font-black text-text-main truncate">{apt.notes?.replace('Walk-in: ', '') || 'Walk-in'}</p>

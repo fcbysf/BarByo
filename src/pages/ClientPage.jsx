@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAllBarbers, searchBarbers } from '../services/barberService';
 import { Scissors, Search, MapPin, Star, Loader2, ArrowRight, Filter } from 'lucide-react';
+import { useFadeIn, useStagger } from '../hooks/useAnimations';
 
 const ClientPage = () => {
     const navigate = useNavigate();
@@ -10,6 +11,13 @@ const ClientPage = () => {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearching, setIsSearching] = useState(false);
+
+    // Animation Refs
+    const mainRef = React.useRef(null);
+    const gridRef = React.useRef(null);
+
+    useFadeIn(mainRef, [loading], { y: 20 });
+    useStagger(gridRef, '.gsap-card', [barbers.length], { y: 30, stagger: 0.1 });
 
     useEffect(() => {
         fetchBarbers();
@@ -64,7 +72,7 @@ const ClientPage = () => {
                 </div>
             </header>
 
-            <main className="max-w-6xl mx-auto px-4 py-12">
+            <main className="max-w-6xl mx-auto px-4 py-12" ref={mainRef}>
                 <div className="text-center mb-12">
                     <h1 className="text-4xl md:text-5xl font-black text-text-main mb-4">Find Your Perfect Cut</h1>
                     <p className="text-lg text-text-muted max-w-2xl mx-auto">
@@ -123,12 +131,12 @@ const ClientPage = () => {
                         </button>
                     </div>
                 ) : (
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8" ref={gridRef}>
                         {barbers.map((barber) => (
                             <div
                                 key={barber.id}
                                 onClick={() => navigate(`/book/${barber.id}`)}
-                                className="bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer group"
+                                className="gsap-card bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer group"
                             >
                                 <div className="relative h-48 rounded-t-3xl overflow-hidden">
                                     <img
