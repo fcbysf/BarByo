@@ -24,14 +24,15 @@ export const submitAccessRequest = async (data) => {
  * Get the current user's access request (most recent)
  */
 export const getMyAccessRequest = async (userId) => {
-  const { data, error } = await supabase
-    .from("access_requests")
-    .select("*")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .single();
+  const { data, error } = await supabase.rpc("get_my_access_request");
 
-  if (error && error.code !== "PGRST116") throw error; // PGRST116 = no rows
+  if (error) {
+    console.error(
+      "AccessRequestService: get_my_access_request RPC error:",
+      error,
+    );
+    throw error;
+  }
+
   return data;
 };

@@ -56,12 +56,14 @@ export const approveRequest = async (request) => {
  * Reject an access request
  */
 export const rejectRequest = async (requestId) => {
-  const { error } = await supabase
-    .from("access_requests")
-    .update({ status: "rejected" })
-    .eq("id", requestId);
+  const { error } = await supabase.rpc("reject_access_request", {
+    p_request_id: requestId,
+  });
 
-  if (error) throw error;
+  if (error) {
+    console.error("AdminService: reject_access_request RPC error:", error);
+    throw error;
+  }
 };
 
 // ─── Barber Management ───────────────────────
