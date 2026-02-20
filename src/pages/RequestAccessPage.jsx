@@ -19,11 +19,12 @@ import {
     CheckCircle2,
     ArrowRight,
     Clock,
+    LogOut,
 } from "lucide-react";
 
 const RequestAccessPage = () => {
     const navigate = useNavigate();
-    const { user, profile, refreshProfile } = useAuthStore();
+    const { user, profile, refreshProfile, signOut } = useAuthStore();
     const [loading, setLoading] = useState(false);
     const [checkingExisting, setCheckingExisting] = useState(true);
     const [submitted, setSubmitted] = useState(false);
@@ -339,15 +340,17 @@ const RequestAccessPage = () => {
                         </button>
                     </form>
 
-                    <p className="mt-6 text-center text-xs text-text-muted">
-                        Already approved?{" "}
+                    <div className="mt-6 flex flex-col gap-2 items-center">
                         <button
-                            onClick={() => navigate("/login")}
-                            className="text-secondary font-bold hover:underline"
+                            onClick={async () => {
+                                await signOut();
+                                navigate("/login");
+                            }}
+                            className="text-text-muted text-xs hover:text-red-500 font-bold hover:underline flex items-center gap-1"
                         >
-                            Sign in here
+                            <LogOut size={14} /> Sign out and use a different account
                         </button>
-                    </p>
+                    </div>
                 </div>
             </div>
         </div>
