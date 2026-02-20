@@ -224,7 +224,7 @@ const OnboardingPage = () => {
               email: user.email,
               full_name: user.user_metadata?.full_name || profile?.full_name || user.email?.split('@')[0] || 'Barber',
               phone: shopData.phone,
-              user_type: 'barber', // Set role BEFORE inserting into barbers table
+              role: 'barber', // Set role BEFORE inserting into barbers table
             },
           ], { onConflict: 'user_id' })
           .select()
@@ -268,7 +268,7 @@ const OnboardingPage = () => {
         }
 
         // 4. Update the store's profile state to reflect new role
-        await updateProfile({ user_type: 'barber', phone: shopData.phone });
+        await updateProfile({ role: 'barber', phone: shopData.phone });
 
         navigate('/dashboard');
       } catch (err) {

@@ -20,7 +20,7 @@ const ProtectedRoute = ({ children, requiredRole = null }) => {
 
         // Safety: if it's still loading after 6 seconds, something is wrong
         const timer = setTimeout(() => {
-            if (loading) {
+            if (useAuthStore.getState().loading) {
                 console.warn(
                     "ProtectedRoute: Auth still loading after 6s, forcing render",
                 );

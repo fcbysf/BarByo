@@ -15,6 +15,7 @@ export const useAuthStore = create((set, get) => ({
   profile: null, // User profile from our users table
   loading: true, // Loading state for initial session check
   error: null, // Error message if auth fails
+  initialized: false, // Prevents multiple listeners and initializations
 
   /**
    * Initialize authentication state
@@ -22,6 +23,8 @@ export const useAuthStore = create((set, get) => ({
    */
   initialize: async () => {
     try {
+      if (get().initialized) return;
+
       set({ loading: true, error: null });
 
       // Safety timeout: if auth takes too long, stop loading
@@ -30,7 +33,7 @@ export const useAuthStore = create((set, get) => ({
           console.warn(
             "Auth initialization timed out, forcing loading to false",
           );
-          set({ loading: false });
+          set({ loading: false, initialized: true });
         }
       }, 5000);
 
@@ -54,9 +57,10 @@ export const useAuthStore = create((set, get) => ({
           user: session.user,
           profile: profile,
           loading: false,
+          initialized: true,
         });
       } else {
-        set({ user: null, profile: null, loading: false });
+        set({ user: null, profile: null, loading: false, initialized: true });
       }
 
       // Listen for auth state changes (login, logout, token refresh)
@@ -95,7 +99,7 @@ export const useAuthStore = create((set, get) => ({
       });
     } catch (error) {
       console.error("Error initializing auth:", error);
-      set({ error: error.message, loading: false });
+      set({ error: error.message, loading: false, initialized: true });
     }
   },
 
