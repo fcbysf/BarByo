@@ -8,7 +8,7 @@
 import { useState, useEffect } from "react";
 import { useAuthStore } from "../store/authStore";
 import { supabase } from "../lib/supabase";
-import { Lock, Mail, Clock } from "lucide-react";
+import { Lock, Mail, Clock, Instagram, Twitter } from "lucide-react";
 
 const SubscriptionGuard = ({ children }) => {
     const { user, profile } = useAuthStore();
@@ -116,9 +116,19 @@ const SubscriptionGuard = ({ children }) => {
                         </div>
                     </div>
 
-                    <div className="flex items-center justify-center gap-2 text-text-muted">
-                        <Mail size={16} />
-                        <span className="text-sm">Contact admin to continue</span>
+                    <div className="flex flex-col items-center gap-4 mt-8">
+                        <p className="text-sm font-bold text-text-muted">Contact admin to activate:</p>
+                        <div className="flex items-center gap-4">
+                            <a href="mailto:support@barbyoo.com" className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-secondary hover:text-white transition-all" title="Email Support">
+                                <Mail size={20} />
+                            </a>
+                            <a href="https://instagram.com/barbyoo" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-pink-600 hover:text-white transition-all" title="Instagram">
+                                <Instagram size={20} />
+                            </a>
+                            <a href="https://twitter.com/barbyoo" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-black hover:text-white transition-all" title="X (Twitter)">
+                                <Twitter size={20} />
+                            </a>
+                        </div>
                     </div>
 
                     {barberShop?.trial_end_date && (

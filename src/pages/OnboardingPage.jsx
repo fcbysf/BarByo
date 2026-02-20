@@ -243,6 +243,9 @@ const OnboardingPage = () => {
           address: shopData.address,
           phone: shopData.phone,
           image_url: finalImageUrl,
+          // Initialize with 7-day trial
+          subscription_status: 'trial',
+          trial_end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
           availability: availability,
           is_active: true
         };
