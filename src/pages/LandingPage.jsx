@@ -3,9 +3,21 @@ import { ArrowUp, Scissors, Play, X, CheckCircle2, Check, MinusCircle, Smartphon
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import { useFadeIn, useStagger } from '../hooks/useAnimations';
 
 const LandingPage = () => {
   const { user } = useAuthStore();
+
+  // Animation Refs
+  const heroRef = React.useRef(null);
+  const stepsRef = React.useRef(null);
+  const featuresRef = React.useRef(null);
+  const pricingRef = React.useRef(null);
+
+  useFadeIn(heroRef, [], { y: 30, duration: 0.8 });
+  useStagger(stepsRef, '.gsap-step', [], { y: 40, stagger: 0.15, delay: 0.2 });
+  useStagger(featuresRef, '.gsap-feature', [], { y: 40, stagger: 0.15, delay: 0.3 });
+  useStagger(pricingRef, '.gsap-plan', [], { y: 40, stagger: 0.2, delay: 0.4 });
 
   const plans = [
     {
@@ -65,7 +77,7 @@ const LandingPage = () => {
       </header>
 
       {/* Hero */}
-      <section className="pt-20 pb-32 text-center px-4 max-w-5xl mx-auto">
+      <section className="pt-20 pb-32 text-center px-4 max-w-5xl mx-auto" ref={heroRef}>
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary/10 text-secondary text-xs font-bold uppercase tracking-wider mb-8">
           <span className="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
           NEW: AUTOMATED DEPOSITS
@@ -172,22 +184,22 @@ const LandingPage = () => {
           <div className="text-center mb-16">
             <h2 className="text-4xl font-black mb-4">Set Up Your Shop in Minutes</h2>
           </div>
-          <div className="grid md:grid-cols-3 gap-12 text-center">
-            <div className="flex flex-col items-center">
+          <div className="grid md:grid-cols-3 gap-12 text-center" ref={stepsRef}>
+            <div className="gsap-step flex flex-col items-center">
               <div className="w-20 h-20 bg-green-50 rounded-3xl flex items-center justify-center text-green-600 mb-6">
                 <CalendarCheck size={32} />
               </div>
               <h3 className="text-xl font-bold mb-3">1. Connect Calendar</h3>
               <p className="text-text-muted text-sm">Sync with Google or Apple Calendar to block off personal time instantly.</p>
             </div>
-            <div className="flex flex-col items-center">
+            <div className="gsap-step flex flex-col items-center">
               <div className="w-20 h-20 bg-blue-50 rounded-3xl flex items-center justify-center text-blue-600 mb-6">
                 <Scissors size={32} />
               </div>
               <h3 className="text-xl font-bold mb-3">2. Set Services</h3>
               <p className="text-text-muted text-sm">Define your cuts, set your prices, and choose your duration.</p>
             </div>
-            <div className="flex flex-col items-center">
+            <div className="gsap-step flex flex-col items-center">
               <div className="w-20 h-20 bg-purple-50 rounded-3xl flex items-center justify-center text-purple-600 mb-6">
                 <Zap size={32} />
               </div>
@@ -211,8 +223,8 @@ const LandingPage = () => {
             </a>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:border-secondary/20 transition-all group">
+          <div className="grid md:grid-cols-3 gap-8" ref={featuresRef}>
+            <div className="gsap-feature bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:border-secondary/20 transition-all group">
               <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center text-green-700 mb-6 group-hover:scale-110 transition-transform">
                 <MessageSquare size={24} />
               </div>
@@ -229,7 +241,7 @@ const LandingPage = () => {
               </div>
             </div>
 
-            <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:border-secondary/20 transition-all group">
+            <div className="gsap-feature bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:border-secondary/20 transition-all group">
               <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-700 mb-6 group-hover:scale-110 transition-transform">
                 <ShieldCheck size={24} />
               </div>
@@ -240,7 +252,7 @@ const LandingPage = () => {
               </div>
             </div>
 
-            <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:border-secondary/20 transition-all group">
+            <div className="gsap-feature bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:border-secondary/20 transition-all group">
               <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center text-purple-700 mb-6 group-hover:scale-110 transition-transform">
                 <Smartphone size={24} />
               </div>
@@ -261,9 +273,9 @@ const LandingPage = () => {
             <h2 className="text-4xl font-black mb-4">Simple, Transparent Pricing</h2>
             <p className="text-text-muted">Start for free, upgrade as you grow.</p>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-8" ref={pricingRef}>
             {plans.map((plan) => (
-              <div key={plan.name} className={`bg-white p-8 rounded-3xl shadow-sm border ${plan.popular ? 'border-secondary ring-2 ring-secondary/20' : 'border-slate-100'}`}>
+              <div key={plan.name} className={`gsap-plan bg-white p-8 rounded-3xl shadow-sm border ${plan.popular ? 'border-secondary ring-2 ring-secondary/20' : 'border-slate-100'}`}>
                 {plan.popular && <div className="text-secondary text-xs font-bold uppercase tracking-widest mb-4">Most Popular</div>}
                 <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
                 <div className="text-4xl font-black mb-4">{plan.price}<span className="text-sm text-text-muted font-normal">/mo</span></div>
