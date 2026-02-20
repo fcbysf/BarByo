@@ -3,7 +3,6 @@ import { Link, useLocation } from 'react-router-dom';
 import { Scissors, LayoutDashboard, Calendar, Users, Settings, LogOut, Menu, X, Clock, CreditCard } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { supabase } from '../lib/supabase';
-import logo from '../assets/logo.png';
 
 const Sidebar = () => {
     const { user, profile, signOut } = useAuthStore();
@@ -117,15 +116,15 @@ const Sidebar = () => {
                 ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
             `}>
                 <div className="flex items-center justify-between mb-10">
-                    <Link to="/" className="flex items-center gap-3 group">
-                        <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center shadow-sm group-hover:bg-primary/20 transition-colors overflow-hidden">
-                            <img src={logo} alt="BarByoo Logo" className="w-full h-full object-contain p-1" />
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-sm">
+                            <Scissors className="text-text-main" size={20} />
                         </div>
                         <div>
                             <h1 className="font-bold text-lg leading-tight">BarByoo</h1>
                             <p className="text-[10px] text-text-muted font-black uppercase tracking-widest">Management</p>
                         </div>
-                    </Link>
+                    </div>
                     {/* Close button for mobile */}
                     <button
                         onClick={() => setIsOpen(false)}

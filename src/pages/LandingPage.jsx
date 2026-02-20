@@ -4,7 +4,6 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useFadeIn, useStagger } from '../hooks/useAnimations';
-import logo from '../assets/logo.png';
 
 const LandingPage = () => {
   const { user } = useAuthStore();
@@ -50,12 +49,10 @@ const LandingPage = () => {
     <div className="bg-background-light min-h-screen">
       {/* Header */}
       <header className="flex items-center justify-between px-4 md:px-28 py-4 bg-white border-b border-secondary/10 sticky top-0 z-50">
-        <Link to="/" className="flex items-center gap-2 group">
-          <div className="w-10 h-10 overflow-hidden">
-            <img src={logo} alt="BarByoo Logo" className="w-full h-full object-contain" />
-          </div>
-          <span className="text-xl font-bold tracking-tight group-hover:text-secondary transition-colors">BarByoo</span>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Scissors className="text-secondary" size={28} />
+          <span className="text-xl font-bold tracking-tight">BarByoo</span>
+        </div>
         <nav className="hidden md:flex gap-8">
           <a href="#features" className="text-sm font-medium hover:text-secondary transition-colors">Features</a>
           <a href="#pricing" className="text-sm font-medium hover:text-secondary transition-colors">Pricing</a>
@@ -332,7 +329,7 @@ const LandingPage = () => {
           <div className="grid md:grid-cols-4 gap-12 mb-16">
             <div className="col-span-1 md:col-span-1">
               <div className="flex items-center gap-2 mb-6">
-                <img src={logo} alt="BarByoo Logo" className="w-8 h-8 object-contain" />
+                <Scissors className="text-secondary" size={24} />
                 <span className="text-lg font-bold tracking-tight">BarByoo</span>
               </div>
               <p className="text-text-muted text-sm leading-relaxed">
