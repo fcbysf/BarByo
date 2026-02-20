@@ -160,7 +160,7 @@ const BookingPage = () => {
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/client')}>
             <Scissors className="text-secondary" size={24} />
-            <span className="text-xl font-bold tracking-tight">BarberPro</span>
+            <span className="text-xl font-bold tracking-tight">BarByoo</span>
           </div>
           <button className="flex items-center gap-2 text-sm font-bold bg-slate-50 hover:bg-slate-100 px-4 py-2 rounded-xl transition-all" onClick={() => navigate('/client')}>
             <Search size={18} /> Browse Barbers
@@ -357,7 +357,7 @@ const BookingPage = () => {
             <a href="#" className="text-xs font-bold text-text-muted hover:text-text-main transition-colors uppercase tracking-widest">Terms</a>
             <a href="#" className="text-xs font-bold text-text-muted hover:text-text-main transition-colors uppercase tracking-widest">Support</a>
           </div>
-          <p className="text-xs font-bold text-text-muted uppercase tracking-widest">© 2023 BarberPro Inc.</p>
+          <p className="text-xs font-bold text-text-muted uppercase tracking-widest">© 2023 BarByoo Inc.</p>
         </div>
       </footer>
     </div>

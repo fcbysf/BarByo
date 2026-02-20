@@ -87,7 +87,7 @@ const AccessPendingPage = () => {
             badge: "bg-amber-100 text-amber-700",
             title: "Your request is being reviewed",
             message:
-                "Thank you for your interest in BarberPro! Our admin team is reviewing your application. You'll receive access once approved.",
+                "Thank you for your interest in BarByoo! Our admin team is reviewing your application. You'll receive access once approved.",
         },
         rejected: {
             icon: XCircle,
@@ -117,7 +117,7 @@ const AccessPendingPage = () => {
                 {/* Logo */}
                 <div className="flex justify-center items-center gap-2 mb-8">
                     <Scissors className="text-secondary" size={28} />
-                    <span className="text-xl font-bold">BarberPro</span>
+                    <span className="text-xl font-bold">BarByoo</span>
                 </div>
 
                 {/* Status Icon */}

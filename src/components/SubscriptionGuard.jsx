@@ -97,7 +97,7 @@ const SubscriptionGuard = ({ children }) => {
                     </h2>
                     <p className="text-text-muted mb-8">
                         {trialEnded
-                            ? "Your 7-day free trial has expired. Please contact the admin to activate your subscription and continue using BarberPro."
+                            ? "Your 7-day free trial has expired. Please contact the admin to activate your subscription and continue using BarByoo."
                             : "Your subscription is currently inactive. Please contact the admin to reactivate your account."}
                     </p>
 

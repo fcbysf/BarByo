@@ -121,7 +121,7 @@ const Sidebar = () => {
                             <Scissors className="text-text-main" size={20} />
                         </div>
                         <div>
-                            <h1 className="font-bold text-lg leading-tight">BarberPro</h1>
+                            <h1 className="font-bold text-lg leading-tight">BarByoo</h1>
                             <p className="text-[10px] text-text-muted font-black uppercase tracking-widest">Management</p>
                         </div>
                     </div>

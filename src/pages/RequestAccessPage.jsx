@@ -175,10 +175,10 @@ const RequestAccessPage = () => {
                 <div className="relative z-10 p-16 max-w-xl text-white">
                     <div className="flex items-center gap-3 mb-12">
                         <Scissors className="text-primary" size={40} />
-                        <span className="text-2xl font-bold">BarberPro</span>
+                        <span className="text-2xl font-bold">BarByoo</span>
                     </div>
                     <h1 className="text-4xl font-bold leading-tight mb-6">
-                        Join the BarberPro Platform
+                        Join the BarByoo Platform
                     </h1>
                     <p className="text-xl text-slate-300 leading-relaxed mb-8">
                         Request access to start managing your barbershop with our powerful
@@ -207,7 +207,7 @@ const RequestAccessPage = () => {
                     {/* Mobile Logo */}
                     <div className="lg:hidden flex justify-center items-center gap-2 mb-6 text-text-main">
                         <Scissors className="text-primary" size={32} />
-                        <span className="text-2xl font-bold">BarberPro</span>
+                        <span className="text-2xl font-bold">BarByoo</span>
                     </div>
 
                     <div className="mb-8">

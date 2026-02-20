@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { getMyAccessRequest } from '../services/accessRequestService';
-import { Scissors, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { Scissors, Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -113,7 +113,13 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="flex h-screen w-full overflow-hidden">
+    <div className="flex h-screen w-full overflow-hidden relative">
+      <button
+        onClick={() => navigate('/')}
+        className="absolute top-6 left-6 z-50 flex items-center justify-center w-10 h-10 rounded-full bg-slate-100 lg:bg-white/20 hover:bg-slate-200 lg:hover:bg-white text-slate-800 lg:text-white lg:hover:text-slate-900 backdrop-blur-md transition-all shadow-sm"
+      >
+        <ArrowLeft size={20} />
+      </button>
       {/* Left branding */}
       <div className="hidden lg:flex w-1/2 relative bg-slate-900 items-center justify-center">
         <div className="absolute inset-0 opacity-60">
@@ -127,11 +133,11 @@ const LoginPage = () => {
         <div className="relative z-10 p-16 max-w-xl text-white">
           <div className="flex items-center gap-3 mb-12">
             <Scissors className="text-primary" size={40} />
-            <span className="text-2xl font-bold">BarberPro</span>
+            <span className="text-2xl font-bold">BarByoo</span>
           </div>
           <h1 className="text-5xl font-bold leading-tight mb-6">Master your craft, manage your business.</h1>
           <p className="text-xl text-slate-300 leading-relaxed mb-10">
-            Join over 10,000 barbershops using BarberPro to streamline bookings, manage staff, and grow their client base effortlessly.
+            Join over 10,000 barbershops using BarByoo to streamline bookings, manage staff, and grow their client base effortlessly.
           </p>
           <div className="flex items-center gap-4">
             <div className="flex -space-x-4">
@@ -154,7 +160,7 @@ const LoginPage = () => {
             {/* Mobile Logo */}
             <div className="lg:hidden flex justify-center items-center gap-2 mb-6 text-text-main">
               <Scissors className="text-primary" size={32} />
-              <span className="text-2xl font-bold">BarberPro</span>
+              <span className="text-2xl font-bold">BarByoo</span>
             </div>
 
             <h2 className="text-3xl font-bold mb-3">
@@ -163,7 +169,7 @@ const LoginPage = () => {
             <p className="text-text-muted">
               {isSignUp
                 ? 'Sign up to request access to the platform.'
-                : 'Sign in to your BarberPro account.'}
+                : 'Sign in to your BarByoo account.'}
             </p>
           </div>
 
