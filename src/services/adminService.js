@@ -34,72 +34,22 @@ export const getAccessRequests = async (statusFilter = null) => {
  * 4. Activate 7-day trial
  */
 export const approveRequest = async (request) => {
-  // 0. Pre-flight check: Am I an admin in the DB?
-  const { data: myProfile, error: myProfileError } = await supabase
-    .from("users")
-    .select("role, user_id")
-    .eq("user_id", (await supabase.auth.getUser()).data.user?.id)
-    .single();
+  const { data, error } = await supabase.rpc("approve_access_request", {
+    p_request_id: request.id,
+    p_user_id: request.user_id,
+    p_shop_name: request.shop_name,
+    p_owner_name: request.name,
+    p_phone: request.phone,
+    p_location: request.location || "",
+  });
 
-  console.log("AdminService: Current User Profile (DB):", myProfile);
-  if (myProfile?.role !== "admin") {
-    console.error(
-      "AdminService: CRITICAL - Current user is NOT admin in DB!",
-      myProfile,
-    );
-    throw new Error("You are not recognized as an admin by the database.");
+  if (error) {
+    console.error("AdminService: approve_access_request RPC error:", error);
+    throw error;
   }
 
-  // 1. Update request status
-  const { error: reqError } = await supabase
-    .from("access_requests")
-    .update({ status: "approved" })
-    .eq("id", request.id);
-
-  if (reqError) throw reqError;
-
-  // 2. Update user role to barber
-  const { data: roleData, error: roleError } = await supabase
-    .from("users")
-    .update({ role: "barber", user_type: "barber" })
-    .eq("user_id", request.user_id)
-    .select();
-
-  console.log("AdminService: Role update result:", { roleData, roleError });
-
-  if (roleError) throw roleError;
-  if (!roleData || roleData.length === 0) {
-    console.error(
-      "AdminService: Role update affected 0 rows. Likely RLS issue or user not found.",
-    );
-    throw new Error(
-      "Failed to update user role - user not found or permission denied.",
-    );
-  }
-
-  // 3. Create barber profile with trial
-  const trialEnd = new Date();
-  trialEnd.setDate(trialEnd.getDate() + 7);
-
-  const { data: barber, error: barberError } = await supabase
-    .from("barbers")
-    .insert([
-      {
-        user_id: request.user_id,
-        name: request.shop_name,
-        owner_name: request.name,
-        phone: request.phone,
-        address: request.location || "",
-        subscription_status: "trial",
-        trial_end_date: trialEnd.toISOString(),
-        is_active: true,
-      },
-    ])
-    .select()
-    .single();
-
-  if (barberError) throw barberError;
-  return barber;
+  console.log("AdminService: approve_access_request success:", data);
+  return data;
 };
 
 /**
