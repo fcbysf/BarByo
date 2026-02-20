@@ -53,7 +53,7 @@ const SchedulePage = () => {
     if (!myBarberShop) return;
 
     const channel = supabase
-      .channel(`appointments:barber_id=eq.${myBarberShop.id}`)
+      .channel(`appointments-schedule-${myBarberShop.id}-${Date.now()}`)
       .on(
         'postgres_changes',
         {
@@ -190,8 +190,6 @@ const SchedulePage = () => {
         <header className="h-20 flex items-center justify-between px-4 md:px-8 bg-white border-b border-slate-100 shrink-0 z-10 pl-16 md:pl-8">
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-1">
-              <h1 className="text-2xl font-bold">Schedule</h1>
-              <span className="text-2xl text-slate-200 font-light">/</span>
               <h2 className="text-xl font-medium text-text-muted">
                 {format(weekStart, 'MMM d')} - {format(addDays(weekStart, 6), 'MMM d')}
               </h2>
@@ -201,10 +199,6 @@ const SchedulePage = () => {
                 {myBarberShop.name}
               </span>
             )}
-            <div className="flex bg-slate-50 rounded-full p-1 text-sm font-bold ml-4 hidden md:flex">
-              <button className="px-6 py-1.5 bg-white shadow-sm rounded-full">Week</button>
-              <button className="px-6 py-1.5 text-text-muted">Day</button>
-            </div>
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 mr-4">

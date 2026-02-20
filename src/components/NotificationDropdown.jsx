@@ -17,7 +17,7 @@ const NotificationDropdown = ({ shopId }) => {
 
         // Subscribe to changes
         const channel = supabase
-            .channel('notification-changes')
+            .channel(`notification-changes-${shopId}-${Date.now()}`)
             .on(
                 'postgres_changes',
                 {
