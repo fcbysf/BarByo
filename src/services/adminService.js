@@ -43,12 +43,23 @@ export const approveRequest = async (request) => {
   if (reqError) throw reqError;
 
   // 2. Update user role to barber
-  const { error: roleError } = await supabase
+  const { data: roleData, error: roleError } = await supabase
     .from("users")
     .update({ role: "barber", user_type: "barber" })
-    .eq("user_id", request.user_id);
+    .eq("user_id", request.user_id)
+    .select();
+
+  console.log("AdminService: Role update result:", { roleData, roleError });
 
   if (roleError) throw roleError;
+  if (!roleData || roleData.length === 0) {
+    console.error(
+      "AdminService: Role update affected 0 rows. Likely RLS issue or user not found.",
+    );
+    throw new Error(
+      "Failed to update user role - user not found or permission denied.",
+    );
+  }
 
   // 3. Create barber profile with trial
   const trialEnd = new Date();
