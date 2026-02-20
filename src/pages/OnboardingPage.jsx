@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
 import { createBarberShop } from '../services/barberService';
 import { createService } from '../services/barberService';
+import { getMyAccessRequest } from '../services/accessRequestService';
 import { uploadLogo } from '../services/storageService';
 import { Scissors, HelpCircle, CheckCircle2, MapPin, Upload, ArrowRight, Plus, Trash2, Clock, Camera } from 'lucide-react';
 
@@ -60,6 +61,21 @@ const OnboardingPage = () => {
             // Already onboarded, skip to dashboard
             navigate('/dashboard', { replace: true });
             return;
+          }
+
+          // Pre-fill from access request
+          try {
+            const request = await getMyAccessRequest(user.id);
+            if (request) {
+              setShopData(prev => ({
+                ...prev,
+                name: request.shop_name || '',
+                phone: request.phone || '',
+                address: request.location || '',
+              }));
+            }
+          } catch (err) {
+            console.log('Error pre-filling data:', err);
           }
         } catch (err) {
           // ignore error (probably PG 116 "no rows") and just show the form
