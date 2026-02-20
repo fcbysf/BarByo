@@ -34,6 +34,22 @@ export const getAccessRequests = async (statusFilter = null) => {
  * 4. Activate 7-day trial
  */
 export const approveRequest = async (request) => {
+  // 0. Pre-flight check: Am I an admin in the DB?
+  const { data: myProfile, error: myProfileError } = await supabase
+    .from("users")
+    .select("role, user_id")
+    .eq("user_id", (await supabase.auth.getUser()).data.user?.id)
+    .single();
+
+  console.log("AdminService: Current User Profile (DB):", myProfile);
+  if (myProfile?.role !== "admin") {
+    console.error(
+      "AdminService: CRITICAL - Current user is NOT admin in DB!",
+      myProfile,
+    );
+    throw new Error("You are not recognized as an admin by the database.");
+  }
+
   // 1. Update request status
   const { error: reqError } = await supabase
     .from("access_requests")
