@@ -78,6 +78,8 @@ const LoginPage = () => {
       if (!result.success) {
         setError(result.error || 'Authentication failed. Please try again.');
         setLoading(false);
+      } else {
+        setLoading(false);
       }
       // Role-based redirect happens in useEffect above
     } catch (err) {
