@@ -244,7 +244,7 @@ export const getAppointmentHistory = async (customerId) => {
  */
 export const subscribeToAppointments = (customerId, callback) => {
   const subscription = supabase
-    .channel("appointments-changes")
+    .channel(`appointments-changes-${customerId}-${Date.now()}`)
     .on(
       "postgres_changes",
       {
