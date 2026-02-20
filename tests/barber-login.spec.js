@@ -2,8 +2,8 @@ import { test, expect } from "@playwright/test";
 
 test.describe("Barber Login Flow", () => {
   test("should login successfully and load the dashboard", async ({ page }) => {
-    // Navigate to local dev server (where our latest fixes are)
-    await page.goto("http://localhost:5173/login");
+    // Navigate to live server
+    await page.goto("https://barbyo.vercel.app/login");
 
     // Make sure we are on the Sign In tab (not Sign Up)
     const toggleButton = page.getByRole("button", {
