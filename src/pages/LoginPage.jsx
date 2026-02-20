@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { getMyAccessRequest } from '../services/accessRequestService';
 import { Scissors, Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import logo from '../assets/logo.png';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -131,10 +132,10 @@ const LoginPage = () => {
           <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent"></div>
         </div>
         <div className="relative z-10 p-16 max-w-xl text-white">
-          <div className="flex items-center gap-3 mb-12">
-            <Scissors className="text-primary" size={40} />
-            <span className="text-2xl font-bold">BarByoo</span>
-          </div>
+          <Link to="/" className="flex items-center gap-3 mb-12 group">
+            <img src={logo} alt="BarByoo Logo" className="w-12 h-12 object-contain" />
+            <span className="text-2xl font-bold group-hover:text-primary transition-colors">BarByoo</span>
+          </Link>
           <h1 className="text-5xl font-bold leading-tight mb-6">Master your craft, manage your business.</h1>
           <p className="text-xl text-slate-300 leading-relaxed mb-10">
             Join over 10,000 barbershops using BarByoo to streamline bookings, manage staff, and grow their client base effortlessly.
@@ -158,10 +159,10 @@ const LoginPage = () => {
         <div className="w-full max-w-md">
           <div className="mb-10 text-center lg:text-left pt-10 lg:pt-0">
             {/* Mobile Logo */}
-            <div className="lg:hidden flex justify-center items-center gap-2 mb-6 text-text-main">
-              <Scissors className="text-primary" size={32} />
-              <span className="text-2xl font-bold">BarByoo</span>
-            </div>
+            <Link to="/" className="lg:hidden flex justify-center items-center gap-2 mb-6 text-text-main group">
+              <img src={logo} alt="BarByoo Logo" className="w-10 h-10 object-contain" />
+              <span className="text-2xl font-bold group-hover:text-primary transition-colors">BarByoo</span>
+            </Link>
 
             <h2 className="text-3xl font-bold mb-3">
               {isSignUp ? 'Create your account' : 'Welcome back'}

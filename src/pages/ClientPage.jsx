@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { getAllBarbers, searchBarbers } from '../services/barberService';
 import { Scissors, Search, MapPin, Star, Loader2, ArrowRight, Filter } from 'lucide-react';
 import { useFadeIn, useStagger } from '../hooks/useAnimations';
+import logo from '../assets/logo.png';
 
 const ClientPage = () => {
     const navigate = useNavigate();
@@ -58,9 +59,9 @@ const ClientPage = () => {
         <div className="bg-background-light min-h-screen">
             {/* Header */}
             <header className="flex items-center justify-between px-6 py-4 bg-white border-b border-secondary/10 sticky top-0 z-50">
-                <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
-                    <Scissors className="text-secondary" size={28} />
-                    <span className="text-xl font-bold tracking-tight">BarberBook</span>
+                <div className="flex items-center gap-2 cursor-pointer group" onClick={() => navigate('/')}>
+                    <img src={logo} alt="BarByoo Logo" className="w-9 h-9 object-contain" />
+                    <span className="text-xl font-bold tracking-tight group-hover:text-secondary transition-colors">BarByoo</span>
                 </div>
                 <div className="flex items-center gap-4">
                     <button
@@ -189,10 +190,10 @@ const ClientPage = () => {
             <footer className="py-12 border-t border-slate-100 bg-white mt-20">
                 <div className="max-w-6xl mx-auto px-4 text-center">
                     <div className="flex items-center justify-center gap-2 mb-6">
-                        <Scissors className="text-secondary" size={24} />
-                        <span className="text-lg font-bold tracking-tight">BarberBook</span>
+                        <img src={logo} alt="BarByoo Logo" className="w-7 h-7 object-contain" />
+                        <span className="text-lg font-bold tracking-tight">BarByoo</span>
                     </div>
-                    <p className="text-text-muted text-sm">© 2023 BarberBook Inc. The easiest way to book your next cut.</p>
+                    <p className="text-text-muted text-sm">© 2023 BarByoo Inc. The easiest way to book your next cut.</p>
                 </div>
             </footer>
         </div>
