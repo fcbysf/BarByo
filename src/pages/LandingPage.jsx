@@ -15,9 +15,9 @@ const LandingPage = () => {
   const pricingRef = React.useRef(null);
 
   useFadeIn(heroRef, [], { y: 30, duration: 0.8 });
-  useStagger(stepsRef, '.gsap-step', [], { y: 40, stagger: 0.15, delay: 0.2 });
-  useStagger(featuresRef, '.gsap-feature', [], { y: 40, stagger: 0.15, delay: 0.3 });
-  useStagger(pricingRef, '.gsap-plan', [], { y: 40, stagger: 0.2, delay: 0.4 });
+  useStagger(stepsRef, '.gsap-step', [], { y: 40, stagger: 0.15 });
+  useStagger(featuresRef, '.gsap-feature', [], { y: 40, stagger: 0.15 });
+  useStagger(pricingRef, '.gsap-plan', [], { y: 40, stagger: 0.2 });
 
   const plans = [
     {
