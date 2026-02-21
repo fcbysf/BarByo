@@ -1,6 +1,5 @@
 @import 'tailwindcss';
 
-
 @theme {
     --color-primary: #FFFBB1;
     --color-primary-hover: #F5F09B;
@@ -11,4 +10,23 @@
     --color-background-light: #FAFAF9;
     --color-surface-light: #ffffff;
     --color-border-light: #E2E8F0;
+
+    /* Landing Page Animations */
+    --animate-float: float 6s ease-in-out infinite;
+    --animate-float-delayed: float 6s ease-in-out 3s infinite;
+    --animate-float-slow: float 8s ease-in-out infinite;
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-15px);
+    }
+
+    100% {
+        transform: translateY(0px);
+    }
 }
