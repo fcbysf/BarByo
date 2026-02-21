@@ -1,13 +1,12 @@
 
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { getMyAccessRequest } from '../services/accessRequestService';
 import { Scissors, Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { signIn, signUp, signInWithGoogle, user, profile, loading: authLoading } = useAuthStore();
 
   const [isSignUp, setIsSignUp] = useState(false);
@@ -263,7 +262,7 @@ const LoginPage = () => {
               }}
               className="text-secondary font-bold hover:underline"
             >
-              {isSignUp ? 'Sign in' : 'Sign up'}
+              {isSignUp ? 'Sign in' : 'Request Access'}
             </button>
           </p>
         </div>
