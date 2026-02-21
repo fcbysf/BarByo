@@ -69,7 +69,25 @@ const BookingPage = () => {
   const fetchTimeSlots = async () => {
     try {
       const dateStr = format(selectedDate, 'yyyy-MM-dd');
-      const slots = await getAvailableTimeSlots(barberId, dateStr);
+      let slots = await getAvailableTimeSlots(barberId, dateStr);
+
+      // If the selected date is today, filter out past slots
+      if (isSameDay(selectedDate, new Date())) {
+        const now = new Date();
+        const currentHour = now.getHours();
+        const currentMinute = now.getMinutes();
+
+        slots = slots.filter(slot => {
+          const [slotHourStr, slotMinuteStr] = slot.split(':');
+          const slotHour = parseInt(slotHourStr, 10);
+          const slotMinute = parseInt(slotMinuteStr, 10);
+
+          if (slotHour > currentHour) return true;
+          if (slotHour === currentHour && slotMinute > currentMinute) return true;
+          return false;
+        });
+      }
+
       setAvailableSlots(slots);
       setSelectedSlot(null);
     } catch (error) {
