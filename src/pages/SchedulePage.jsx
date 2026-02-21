@@ -131,8 +131,13 @@ const SchedulePage = () => {
       alert('No barber shop found. Please complete onboarding first.');
       return;
     }
-    setSubmitting(true);
     try {
+      setSubmitting(true);
+      if (formData.whatsapp_number && formData.whatsapp_number.length < 7) {
+        alert('Please provide a valid WhatsApp number (minimum 7 digits).');
+        setSubmitting(false);
+        return;
+      }
       const selectedService = services.find(s => s.name === formData.service);
       const price = selectedService ? selectedService.price : 0;
 

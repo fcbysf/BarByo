@@ -98,9 +98,15 @@ const BookingPage = () => {
   const handleBooking = async () => {
     if (!selectedServiceId || !selectedSlot) return;
 
-    if (!user && (!guestName || !guestPhone)) {
-      alert('Please provide your name and phone number to book.');
-      return;
+    if (!user) {
+      if (!guestName || !guestPhone) {
+        alert('Please provide your name and phone number to book.');
+        return;
+      }
+      if (guestPhone.length < 7) {
+        alert('Please provide a valid WhatsApp number (minimum 7 digits).');
+        return;
+      }
     }
 
     setBookingLoading(true);
