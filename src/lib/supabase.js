@@ -20,6 +20,35 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
+// Custom fetch wrapper with timeout
+// This handles the edge case where the app sits idle, the network drops silently,
+// and Supabase requests hang forever causing an infinite loader.
+const fetchWithTimeout = async (url, options) => {
+  const timeoutMs = 12000; // 12 seconds
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    clearTimeout(id);
+    return response;
+  } catch (error) {
+    clearTimeout(id);
+    if (error.name === "AbortError") {
+      console.warn(
+        "Supabase request timed out (likely idle connection drop). Forcing page refresh...",
+      );
+      // If the request hangs for too long, force a refresh as requested by the user
+      window.location.reload();
+      throw new Error("Request timed out. Refreshing page...");
+    }
+    throw error;
+  }
+};
+
 // Create and export the Supabase client
 // This client automatically handles:
 // - Authentication state management
@@ -33,5 +62,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     // Detect session from URL (used for OAuth callbacks)
     detectSessionInUrl: true,
+  },
+  global: {
+    fetch: fetchWithTimeout,
   },
 });
