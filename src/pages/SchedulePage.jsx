@@ -2,10 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import { getBarberAppointments, createAppointment, deleteAppointment } from '../services/appointmentService';
+import { getBarberAppointments, createAppointment, deleteAppointment, markAppointmentNoShow, markAppointmentCompleted } from '../services/appointmentService';
 import { getBarberServices } from '../services/barberService';
 import { supabase } from '../lib/supabase';
-import { ArrowLeft, ChevronLeft, ChevronRight, Plus, X, User, Scissors, Clock, Calendar as CalendarIcon, Loader2, Trash2, Bell } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Plus, X, User, Scissors, Clock, Calendar as CalendarIcon, Loader2, Trash2, Bell, LogOut, CheckCircle, AlertTriangle } from 'lucide-react';
 import NotificationDropdown from '../components/NotificationDropdown';
 import Sidebar from '../components/Sidebar';
 import { format, startOfWeek, addDays, subDays, isSameDay, parseISO } from 'date-fns';
@@ -29,9 +29,11 @@ const SchedulePage = () => {
     service: '',
     date: format(new Date(), 'yyyy-MM-dd'),
     time: '10:00',
-    customer_name: ''
+    customer_name: '',
+    whatsapp_number: '' // New field
   });
   const [submitting, setSubmitting] = useState(false);
+  const [toastMessage, setToastMessage] = useState(null); // { title: '', desc: '', action: { label: '', href: '' } }
 
   // Computed
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 }); // Monday start
@@ -144,7 +146,7 @@ const SchedulePage = () => {
           service: formData.service,
           price: price,
           status: 'confirmed',
-          notes: formData.customer_name ? `Walk-in: ${formData.customer_name}` : 'Walk-in'
+          notes: formData.customer_name ? `Walk-in: ${formData.customer_name}${formData.whatsapp_number ? ` (WA: ${formData.whatsapp_number})` : ''}` : 'Walk-in'
         }])
         .select()
         .single();
@@ -158,6 +160,7 @@ const SchedulePage = () => {
       setFormData(prev => ({
         ...prev,
         customer_name: '',
+        whatsapp_number: '',
         date: format(new Date(), 'yyyy-MM-dd'),
         time: '10:00'
       }));
@@ -187,6 +190,70 @@ const SchedulePage = () => {
       const [aptHour] = apt.appointment_time.split(':').map(Number);
       return isSameDay(aptDate, day) && aptHour === hour;
     });
+  };
+
+  const showToast = (title, desc, nextAppointment) => {
+    let whatsappHref = null;
+
+    if (nextAppointment) {
+      const notes = nextAppointment.notes || '';
+      const waMatch = notes.match(/\(WA:\s*([^\)]+)\)/i);
+      const phoneToUse = waMatch ? waMatch[1].replace(/\D/g, '') : (nextAppointment.users?.phone || nextAppointment.guest_phone || '');
+
+      if (phoneToUse) {
+        const message = encodeURIComponent(`Hi ${nextAppointment.users?.full_name || nextAppointment.guest_name || 'there'}, your barber ${myBarberShop?.name} is ready for you early! Are you around?`);
+        whatsappHref = `https://wa.me/${phoneToUse}?text=${message}`;
+      }
+    }
+
+    setToastMessage({
+      title,
+      desc,
+      action: whatsappHref ? { label: 'Notify Next Client', href: whatsappHref } : null
+    });
+
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 8000);
+  };
+
+  const findNextAppointment = (currentAptId) => {
+    const today = new Date().toISOString().split('T')[0];
+    const todaysApts = appointments
+      .filter(a => a.appointment_date === today && a.id !== currentAptId && (a.status === 'confirmed' || a.status === 'pending'))
+      .sort((a, b) => a.appointment_time.localeCompare(b.appointment_time));
+
+    const currentApt = appointments.find(a => a.id === currentAptId);
+    if (!currentApt) return todaysApts[0] || null;
+
+    const next = todaysApts.find(a => a.appointment_time >= currentApt.appointment_time);
+    return next || null;
+  };
+
+  const handleCompleteEarly = async (aptId) => {
+    if (!window.confirm("Mark this appointment as Completed?")) return;
+    try {
+      await markAppointmentCompleted(aptId);
+      setSelectedAppointment(null);
+      const nextApt = findNextAppointment(aptId);
+      showToast("Appointment Completed", "Great job finishing early!", nextApt);
+      fetchMyShopAndAppointments();
+    } catch (err) {
+      alert("Error: " + err.message);
+    }
+  };
+
+  const handleNoShow = async (aptId) => {
+    if (!window.confirm("Mark this appointment as a No-Show?")) return;
+    try {
+      await markAppointmentNoShow(aptId);
+      setSelectedAppointment(null);
+      const nextApt = findNextAppointment(aptId);
+      showToast("Client Marked as No-Show", "The calendar has been updated.", nextApt);
+      fetchMyShopAndAppointments();
+    } catch (err) {
+      alert("Error: " + err.message);
+    }
   };
 
   return (
@@ -355,11 +422,27 @@ const SchedulePage = () => {
                     <span className={`font-bold capitalize ${selectedAppointment.status === 'confirmed' ? 'text-green-600' : 'text-amber-600'}`}>{selectedAppointment.status}</span>
                   </div>
                 </div>
+
+                <div className="grid grid-cols-2 gap-3 pt-2">
+                  <button
+                    onClick={() => handleCompleteEarly(selectedAppointment.id)}
+                    className="w-full py-3 bg-green-50 hover:bg-green-100 text-green-700 font-bold rounded-2xl flex items-center justify-center gap-2 transition-all shadow-sm"
+                  >
+                    <CheckCircle size={16} /> Complete Early
+                  </button>
+                  <button
+                    onClick={() => handleNoShow(selectedAppointment.id)}
+                    className="w-full py-3 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-2xl flex items-center justify-center gap-2 transition-all shadow-sm"
+                  >
+                    <AlertTriangle size={16} /> Mark No-Show
+                  </button>
+                </div>
+
                 <button
                   onClick={() => handleDeleteAppointment(selectedAppointment.id)}
-                  className="w-full py-3 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-2xl flex items-center justify-center gap-2 transition-all"
+                  className="w-full py-3 bg-slate-50 hover:bg-slate-100/50 text-slate-400 hover:text-red-500 font-bold rounded-2xl flex items-center justify-center gap-2 transition-all"
                 >
-                  <Trash2 size={16} /> Cancel Appointment
+                  <Trash2 size={16} /> Delete Forever
                 </button>
               </div>
             </div>
@@ -386,6 +469,24 @@ const SchedulePage = () => {
                       onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })}
                       placeholder="John Doe"
                       className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border-transparent rounded-2xl focus:ring-2 focus:ring-primary focus:bg-white outline-none transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5 mt-4">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-text-muted ml-1">WhatsApp Number (Optional)</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted text-sm font-bold">+</span>
+                    <input
+                      type="tel"
+                      value={formData.whatsapp_number}
+                      onChange={(e) => {
+                        // Only allow numbers
+                        const val = e.target.value.replace(/\D/g, '');
+                        setFormData({ ...formData, whatsapp_number: val });
+                      }}
+                      placeholder="1234567890"
+                      className="w-full pl-8 pr-4 py-3.5 bg-slate-50 border-transparent rounded-2xl focus:ring-2 focus:ring-primary focus:bg-white outline-none transition-all"
                     />
                   </div>
                 </div>
@@ -468,6 +569,29 @@ const SchedulePage = () => {
           </div>
         )}
       </main>
+
+      {/* Custom Toast */}
+      {toastMessage && (
+        <div className="fixed bottom-8 right-8 bg-slate-900 text-white p-6 rounded-2xl shadow-2xl z-50 animate-fade-in-up max-w-sm border border-slate-700">
+          <div className="flex justify-between items-start mb-2">
+            <h4 className="font-black text-lg">{toastMessage.title}</h4>
+            <button onClick={() => setToastMessage(null)} className="text-slate-400 hover:text-white"><LogOut size={16} className="rotate-45" /></button>
+          </div>
+          <p className="text-slate-300 text-sm mb-4">{toastMessage.desc}</p>
+
+          {toastMessage.action && (
+            <a
+              href={toastMessage.action.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setToastMessage(null)}
+              className="block w-full text-center bg-[#25D366] hover:bg-[#1ebd5a] text-white font-black py-3 rounded-xl transition-all"
+            >
+              {toastMessage.action.label}
+            </a>
+          )}
+        </div>
+      )}
     </div>
   );
 };

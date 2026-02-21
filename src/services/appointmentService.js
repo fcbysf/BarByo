@@ -153,6 +153,20 @@ export const cancelAppointment = async (appointmentId) => {
 };
 
 /**
+ * Mark an appointment as No-Show
+ */
+export const markAppointmentNoShow = async (appointmentId) => {
+  return updateAppointment(appointmentId, { status: "no-show" });
+};
+
+/**
+ * Mark an appointment as Completed Custom (Early)
+ */
+export const markAppointmentCompleted = async (appointmentId) => {
+  return updateAppointment(appointmentId, { status: "completed" });
+};
+
+/**
  * Delete an appointment (hard delete)
  */
 export const deleteAppointment = async (appointmentId) => {

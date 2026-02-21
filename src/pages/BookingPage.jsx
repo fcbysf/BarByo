@@ -322,13 +322,19 @@ const BookingPage = () => {
                       onChange={(e) => setGuestName(e.target.value)}
                       className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:border-secondary transition-all outline-none"
                     />
-                    <input
-                      type="tel"
-                      placeholder="Phone Number"
-                      value={guestPhone}
-                      onChange={(e) => setGuestPhone(e.target.value)}
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:border-secondary transition-all outline-none"
-                    />
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted text-sm font-bold">+</span>
+                      <input
+                        type="tel"
+                        placeholder="WhatsApp Number (e.g. 1234567890)"
+                        value={guestPhone}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, '');
+                          setGuestPhone(val);
+                        }}
+                        className="w-full pl-8 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:border-secondary transition-all outline-none"
+                      />
+                    </div>
                   </div>
                 </div>
               )}

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import { getUpcomingAppointments, getBarberAppointments } from '../services/appointmentService';
+import { getUpcomingAppointments, getBarberAppointments, markAppointmentNoShow, markAppointmentCompleted } from '../services/appointmentService';
 import { supabase } from '../lib/supabase';
 import { Scissors, LayoutDashboard, Calendar, Users, Settings, LogOut, Search, Bell, Plus, TrendingUp, CalendarX, MoreVertical, DollarSign, Clock, UserPlus } from 'lucide-react';
 import NotificationDropdown from '../components/NotificationDropdown';
@@ -16,6 +16,10 @@ const DashboardPage = () => {
   const [barberShop, setBarberShop] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Custom Action State
+  const [activeMenuId, setActiveMenuId] = useState(null);
+  const [toastMessage, setToastMessage] = useState(null); // { title: '', desc: '', action: { label: '', href: '' } }
 
   // Fetch appointments on component mount
   useEffect(() => {
@@ -64,6 +68,85 @@ const DashboardPage = () => {
   const handleLogout = async () => {
     await signOut();
     navigate('/login');
+  };
+
+  // Click outside to close menu
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!e.target.closest('.action-menu-container')) {
+        setActiveMenuId(null);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+
+  const showToast = (title, desc, nextAppointment) => {
+    let whatsappHref = null;
+
+    if (nextAppointment) {
+      // Try to extract WA number from notes "Walk-in: Name (WA: +123456)" or use default phone
+      const notes = nextAppointment.notes || '';
+      const waMatch = notes.match(/\(WA:\s*([^\)]+)\)/i);
+      const phoneToUse = waMatch ? waMatch[1].replace(/\D/g, '') : (nextAppointment.users?.phone || nextAppointment.guest_phone || '');
+
+      if (phoneToUse) {
+        const message = encodeURIComponent(`Hi ${nextAppointment.users?.full_name || nextAppointment.guest_name || 'there'}, your barber ${barberShop?.name} is ready for you early! Are you around?`);
+        whatsappHref = `https://wa.me/${phoneToUse}?text=${message}`;
+      }
+    }
+
+    setToastMessage({
+      title,
+      desc,
+      action: whatsappHref ? { label: 'Notify Next Client', href: whatsappHref } : null
+    });
+
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 8000);
+  };
+
+  const findNextAppointment = (currentAptId) => {
+    // Basic logic to find the chronological next appointment today that is pending/confirmed
+    const today = new Date().toISOString().split('T')[0];
+    const todaysApts = appointments
+      .filter(a => a.appointment_date === today && a.id !== currentAptId && (a.status === 'confirmed' || a.status === 'pending'))
+      .sort((a, b) => a.appointment_time.localeCompare(b.appointment_time));
+
+    // Find the current appointment to see its time
+    const currentApt = appointments.find(a => a.id === currentAptId);
+    if (!currentApt) return todaysApts[0] || null;
+
+    // Find the first appointment that happens AFTER the current one
+    const next = todaysApts.find(a => a.appointment_time >= currentApt.appointment_time);
+    return next || null;
+  };
+
+  const handleAction = async (action, appointmentId) => {
+    setActiveMenuId(null);
+    try {
+      if (action === 'no-show') {
+        if (!window.confirm("Mark this appointment as a No-Show?")) return;
+        await markAppointmentNoShow(appointmentId);
+        // Optimistically update
+        setAppointments(prev => prev.map(a => a.id === appointmentId ? { ...a, status: 'no-show' } : a));
+
+        const nextApt = findNextAppointment(appointmentId);
+        showToast("Client Marked as No-Show", "The calendar has been updated.", nextApt);
+
+      } else if (action === 'complete-early') {
+        if (!window.confirm("Mark this appointment as Completed?")) return;
+        await markAppointmentCompleted(appointmentId);
+        // Optimistically update
+        setAppointments(prev => prev.map(a => a.id === appointmentId ? { ...a, status: 'completed' } : a));
+
+        const nextApt = findNextAppointment(appointmentId);
+        showToast("Appointment Completed", "Great job finishing early!", nextApt);
+      }
+    } catch (err) {
+      alert("Error: " + err.message);
+    }
   };
 
   const isBarber = true; // Dashboard is now barber-only
@@ -223,10 +306,32 @@ const DashboardPage = () => {
                             {a.status}
                           </span>
                         </td>
-                        <td className="px-6 py-5 text-right">
-                          <button className="p-2 rounded-lg hover:bg-white text-slate-300 hover:text-text-main transition-all">
+                        <td className="px-6 py-5 text-right relative action-menu-container">
+                          <button
+                            onClick={() => setActiveMenuId(activeMenuId === a.id ? null : a.id)}
+                            className="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-text-main transition-all"
+                          >
                             <MoreVertical size={20} />
                           </button>
+
+                          {activeMenuId === a.id && (
+                            <div className="absolute right-12 top-10 w-48 bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden z-20 animate-fade-in-up">
+                              <div className="py-2">
+                                <button
+                                  onClick={() => handleAction('complete-early', a.id)}
+                                  className="w-full text-left px-4 py-2.5 text-sm font-bold text-green-600 hover:bg-slate-50 transition-colors"
+                                >
+                                  Finish Early
+                                </button>
+                                <button
+                                  onClick={() => handleAction('no-show', a.id)}
+                                  className="w-full text-left px-4 py-2.5 text-sm font-bold text-red-600 hover:bg-slate-50 transition-colors"
+                                >
+                                  Mark No-Show
+                                </button>
+                              </div>
+                            </div>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -237,6 +342,29 @@ const DashboardPage = () => {
           </div>
         </div>
       </main>
+
+      {/* Custom Toast */}
+      {toastMessage && (
+        <div className="fixed bottom-8 right-8 bg-slate-900 text-white p-6 rounded-2xl shadow-2xl z-50 animate-fade-in-up max-w-sm border border-slate-700">
+          <div className="flex justify-between items-start mb-2">
+            <h4 className="font-black text-lg">{toastMessage.title}</h4>
+            <button onClick={() => setToastMessage(null)} className="text-slate-400 hover:text-white"><LogOut size={16} className="rotate-45" /></button>
+          </div>
+          <p className="text-slate-300 text-sm mb-4">{toastMessage.desc}</p>
+
+          {toastMessage.action && (
+            <a
+              href={toastMessage.action.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setToastMessage(null)}
+              className="block w-full text-center bg-[#25D366] hover:bg-[#1ebd5a] text-white font-black py-3 rounded-xl transition-all"
+            >
+              {toastMessage.action.label}
+            </a>
+          )}
+        </div>
+      )}
     </div>
   );
 };
