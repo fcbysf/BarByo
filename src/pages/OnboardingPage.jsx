@@ -31,6 +31,7 @@ const OnboardingPage = () => {
   const [services, setServices] = useState([
     { name: 'Haircut', description: 'Standard haircut with styling', duration: 30, price: 30 },
     { name: 'Beard Trim', description: 'Beard grooming and shaping', duration: 20, price: 20 },
+    { name: 'Haircut + Beard Trim', description: 'Haircut and beard trim combo', duration: 50, price: 50 },
   ]);
 
   // Step 3: Hours
