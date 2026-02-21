@@ -130,7 +130,7 @@ const DashboardPage = () => {
         if (!window.confirm("Mark this appointment as a No-Show?")) return;
         await markAppointmentNoShow(appointmentId);
         // Optimistically update
-        setAppointments(prev => prev.map(a => a.id === appointmentId ? { ...a, status: 'no-show' } : a));
+        setAppointments(prev => prev.map(a => a.id === appointmentId ? { ...a, status: 'cancelled' } : a));
 
         const nextApt = findNextAppointment(appointmentId);
         showToast("Client Marked as No-Show", "The calendar has been updated.", nextApt);

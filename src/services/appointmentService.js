@@ -156,7 +156,9 @@ export const cancelAppointment = async (appointmentId) => {
  * Mark an appointment as No-Show
  */
 export const markAppointmentNoShow = async (appointmentId) => {
-  return updateAppointment(appointmentId, { status: "no-show" });
+  const apt = await getAppointmentById(appointmentId);
+  const notes = apt.notes ? `${apt.notes} [No-Show]` : "[No-Show]";
+  return updateAppointment(appointmentId, { status: "cancelled", notes });
 };
 
 /**
