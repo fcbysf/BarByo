@@ -3,12 +3,18 @@
  *
  * Wraps barber routes to check if trial/subscription is active.
  * If expired, shows a locked screen with contact message.
+ * Caches the result to avoid re-fetching on every route navigation.
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuthStore } from "../store/authStore";
 import { supabase } from "../lib/supabase";
 import { Lock, Mail, Clock, Instagram, Twitter } from "lucide-react";
+
+// Module-level cache to persist across route navigations
+let cachedSubscription = null;
+let cacheTimestamp = 0;
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 const SubscriptionGuard = ({ children }) => {
     const { user, profile } = useAuthStore();
@@ -24,6 +30,15 @@ const SubscriptionGuard = ({ children }) => {
                 return;
             }
 
+            // Use cached result if still fresh
+            const now = Date.now();
+            if (cachedSubscription && cachedSubscription.userId === user.id && (now - cacheTimestamp) < CACHE_TTL) {
+                setBarberShop(cachedSubscription.shop);
+                setIsAllowed(cachedSubscription.allowed);
+                setLoading(false);
+                return;
+            }
+
             try {
                 const { data: shop } = await supabase
                     .from("barbers")
@@ -33,34 +48,27 @@ const SubscriptionGuard = ({ children }) => {
 
                 setBarberShop(shop);
 
+                let allowed = false;
+
                 if (!shop) {
                     // No shop yet — allow through (onboarding might still be needed)
-                    setIsAllowed(true);
-                    setLoading(false);
-                    return;
-                }
-
-                const now = new Date();
-                const status = shop.subscription_status;
-
-                if (status === "active") {
-                    // Active subscription — check end date
-                    if (shop.subscription_end_date && new Date(shop.subscription_end_date) < now) {
-                        setIsAllowed(false);
-                    } else {
-                        setIsAllowed(true);
-                    }
-                } else if (status === "trial") {
-                    // Trial — check end date
-                    if (shop.trial_end_date && new Date(shop.trial_end_date) < now) {
-                        setIsAllowed(false);
-                    } else {
-                        setIsAllowed(true);
-                    }
+                    allowed = true;
                 } else {
-                    // Inactive
-                    setIsAllowed(false);
+                    const currentTime = new Date();
+                    const status = shop.subscription_status;
+
+                    if (status === "active") {
+                        allowed = !(shop.subscription_end_date && new Date(shop.subscription_end_date) < currentTime);
+                    } else if (status === "trial") {
+                        allowed = !(shop.trial_end_date && new Date(shop.trial_end_date) < currentTime);
+                    }
                 }
+
+                // Cache the result
+                cachedSubscription = { userId: user.id, shop, allowed };
+                cacheTimestamp = Date.now();
+
+                setIsAllowed(allowed);
             } catch (err) {
                 console.error("Subscription check error:", err);
                 setIsAllowed(true); // On error, allow through rather than blocking

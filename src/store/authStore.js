@@ -27,16 +27,6 @@ export const useAuthStore = create((set, get) => ({
 
       set({ loading: true, error: null });
 
-      // Safety timeout: if auth takes too long, stop loading
-      const timeoutId = setTimeout(() => {
-        if (get().loading) {
-          console.warn(
-            "Auth initialization timed out, forcing loading to false",
-          );
-          set({ loading: false, initialized: true });
-        }
-      }, 5000);
-
       // Check if there's an existing session
       const {
         data: { session },
@@ -67,25 +57,18 @@ export const useAuthStore = create((set, get) => ({
       supabase.auth.onAuthStateChange(async (event, session) => {
         console.log("Auth state changed:", event);
 
+        // Skip profile re-fetch on token refresh — nothing changed
+        if (event === "TOKEN_REFRESHED") {
+          return;
+        }
+
         if (session?.user) {
-          // User logged in - fetch profile with retry for background trigger
-          let profile = null;
-          let retries = 5;
-
-          while (!profile && retries > 0) {
-            const { data } = await supabase
-              .from("users")
-              .select("*")
-              .eq("user_id", session.user.id)
-              .single();
-
-            if (data) {
-              profile = data;
-            } else {
-              await new Promise((res) => setTimeout(res, 500));
-              retries--;
-            }
-          }
+          // User logged in or signed up — fetch profile once
+          const { data: profile } = await supabase
+            .from("users")
+            .select("*")
+            .eq("user_id", session.user.id)
+            .single();
 
           set({
             user: session.user,
@@ -188,37 +171,19 @@ export const useAuthStore = create((set, get) => ({
         if (existing) {
           profile = existing;
         } else {
-          // Wait for DB trigger / create manually
-          let retries = 5;
-          while (!profile && retries > 0) {
-            const { data } = await supabase
-              .from("users")
-              .select("*")
-              .eq("user_id", authData.user.id)
-              .single();
-
-            if (data) {
-              profile = data;
-            } else {
-              if (retries === 5) {
-                // Try inserting on first retry
-                const { data: inserted } = await supabase
-                  .from("users")
-                  .insert([
-                    {
-                      user_id: authData.user.id,
-                      email: email,
-                      full_name: email.split("@")[0],
-                    },
-                  ])
-                  .select()
-                  .single();
-                if (inserted) profile = inserted;
-              }
-              await new Promise((res) => setTimeout(res, 500));
-              retries--;
-            }
-          }
+          // Try inserting the profile
+          const { data: inserted } = await supabase
+            .from("users")
+            .insert([
+              {
+                user_id: authData.user.id,
+                email: email,
+                full_name: email.split("@")[0],
+              },
+            ])
+            .select()
+            .single();
+          profile = inserted || null;
         }
 
         set({

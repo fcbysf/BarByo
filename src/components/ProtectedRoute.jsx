@@ -6,30 +6,12 @@
  * Redirects unauthenticated users to login, and unauthorized users based on their role.
  */
 
-import { useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 
 const ProtectedRoute = ({ children, requiredRole = null }) => {
-    const { user, profile, loading, initialize } = useAuthStore();
+    const { user, profile, loading } = useAuthStore();
     const location = useLocation();
-
-    // Initialize auth state on mount
-    useEffect(() => {
-        initialize();
-
-        // Safety: if it's still loading after 6 seconds, something is wrong
-        const timer = setTimeout(() => {
-            if (useAuthStore.getState().loading) {
-                console.warn(
-                    "ProtectedRoute: Auth still loading after 6s, forcing render",
-                );
-                useAuthStore.setState({ loading: false });
-            }
-        }, 6000);
-
-        return () => clearTimeout(timer);
-    }, [initialize]);
 
     // Show loading state while checking authentication
     if (loading) {
