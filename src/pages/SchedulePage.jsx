@@ -10,6 +10,7 @@ import NotificationDropdown from '../components/NotificationDropdown';
 import Sidebar from '../components/Sidebar';
 import { format, startOfWeek, addDays, subDays, isSameDay, parseISO } from 'date-fns';
 import { useStagger, useFadeIn } from '../hooks/useAnimations';
+import { Smartphone } from 'lucide-react';
 
 const SchedulePage = () => {
   const navigate = useNavigate();
@@ -317,11 +318,17 @@ const SchedulePage = () => {
                 <div className="flex-1 grid grid-cols-7">
                   {days.map((day, i) => {
                     const isToday = isSameDay(day, new Date());
+                    const isSelected = isSameDay(day, currentDate);
                     return (
-                      <div key={i} className={`text-center py-4 md:py-6 ${isToday ? 'bg-primary/5 relative' : ''}`}>
+                      <div
+                        key={i}
+                        onClick={() => setCurrentDate(day)}
+                        className={`text-center py-4 md:py-6 cursor-pointer transition-colors ${isSelected ? 'bg-primary/5 relative' : 'hover:bg-slate-50'}`}
+                      >
                         <span className="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-1">{format(day, 'EEE')}</span>
-                        <span className={`text-lg md:text-xl font-black ${isToday ? 'text-text-main' : 'text-slate-900'}`}>{format(day, 'd')}</span>
-                        {isToday && <div className="absolute bottom-0 left-0 w-full h-1 bg-primary"></div>}
+                        <span className={`text-lg md:text-xl font-black ${isSelected ? 'text-text-main' : 'text-slate-900'}`}>{format(day, 'd')}</span>
+                        {isSelected && <div className="absolute bottom-0 left-0 w-full h-1 bg-primary"></div>}
+                        {isToday && !isSelected && <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-secondary"></div>}
                       </div>
                     );
                   })}
@@ -593,6 +600,12 @@ const SchedulePage = () => {
           )}
         </div>
       )}
+
+      {/* Mobile Rotation Banner */}
+      <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900/95 backdrop-blur-sm text-white px-6 py-3 rounded-full flex items-center gap-3 shadow-2xl z-[60] border border-slate-700 pointer-events-none w-max max-w-[90vw] animate-fade-in-up">
+        <Smartphone size={18} className="text-primary animate-pulse rotate-90" />
+        <span className="text-xs font-bold truncate">Rotate phone for best experience</span>
+      </div>
     </div>
   );
 };
