@@ -101,8 +101,7 @@ export const getAppointmentById = async (appointmentId) => {
     .select(
       `
       *,
-      barbers (*),
-      users!appointments_customer_id_fkey (*)
+      barbers (*)
     `,
     )
     .eq("id", appointmentId)
