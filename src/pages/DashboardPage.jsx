@@ -107,18 +107,15 @@ const DashboardPage = () => {
     }, 8000);
   };
 
-  const findNextAppointment = (currentAptId) => {
-    // Basic logic to find the chronological next appointment today that is pending/confirmed
+  const findNextAppointment = (currentAptId, currentList = appointments) => {
     const today = new Date().toISOString().split('T')[0];
-    const todaysApts = appointments
+    const todaysApts = currentList
       .filter(a => a.appointment_date === today && a.id !== currentAptId && (a.status === 'confirmed' || a.status === 'pending'))
       .sort((a, b) => a.appointment_time.localeCompare(b.appointment_time));
 
-    // Find the current appointment to see its time
-    const currentApt = appointments.find(a => a.id === currentAptId);
+    const currentApt = currentList.find(a => a.id === currentAptId);
     if (!currentApt) return todaysApts[0] || null;
 
-    // Find the first appointment that happens AFTER the current one
     const next = todaysApts.find(a => a.appointment_time >= currentApt.appointment_time);
     return next || null;
   };
@@ -128,20 +125,21 @@ const DashboardPage = () => {
     try {
       if (action === 'no-show') {
         if (!window.confirm("Mark this appointment as a No-Show?")) return;
-        await markAppointmentNoShow(appointmentId);
-        // Optimistically update
-        setAppointments(prev => prev.map(a => a.id === appointmentId ? { ...a, status: 'cancelled' } : a));
 
+        // Find next before optimistic update otherwise the current one might be lost
         const nextApt = findNextAppointment(appointmentId);
+
+        await markAppointmentNoShow(appointmentId);
+        setAppointments(prev => prev.map(a => a.id === appointmentId ? { ...a, status: 'cancelled' } : a));
         showToast("Client Marked as No-Show", "The calendar has been updated.", nextApt);
 
       } else if (action === 'complete-early') {
         if (!window.confirm("Mark this appointment as Completed?")) return;
-        await markAppointmentCompleted(appointmentId);
-        // Optimistically update
-        setAppointments(prev => prev.map(a => a.id === appointmentId ? { ...a, status: 'completed' } : a));
 
         const nextApt = findNextAppointment(appointmentId);
+
+        await markAppointmentCompleted(appointmentId);
+        setAppointments(prev => prev.map(a => a.id === appointmentId ? { ...a, status: 'completed' } : a));
         showToast("Appointment Completed", "Great job finishing early!", nextApt);
       }
     } catch (err) {
@@ -358,8 +356,9 @@ const DashboardPage = () => {
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => setToastMessage(null)}
-              className="block w-full text-center bg-[#25D366] hover:bg-[#1ebd5a] text-white font-black py-3 rounded-xl transition-all"
+              className="block w-full text-center flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1ebd5a] text-white font-black py-3 rounded-xl transition-all"
             >
+              <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
               {toastMessage.action.label}
             </a>
           )}
