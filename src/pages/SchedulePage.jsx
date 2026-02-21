@@ -35,6 +35,7 @@ const SchedulePage = () => {
   });
   const [submitting, setSubmitting] = useState(false);
   const [toastMessage, setToastMessage] = useState(null); // { title: '', desc: '', action: { label: '', href: '' } }
+  const [showMobileBanner, setShowMobileBanner] = useState(true);
 
   // Computed
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 }); // Monday start
@@ -602,10 +603,18 @@ const SchedulePage = () => {
       )}
 
       {/* Mobile Rotation Banner */}
-      <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900/95 backdrop-blur-sm text-white px-6 py-3 rounded-full flex items-center gap-3 shadow-2xl z-[60] border border-slate-700 pointer-events-none w-max max-w-[90vw] animate-fade-in-up">
-        <Smartphone size={18} className="text-primary animate-pulse rotate-90" />
-        <span className="text-xs font-bold truncate">Rotate phone for best experience</span>
-      </div>
+      {showMobileBanner && (
+        <div className="md:hidden portrait:flex landscape:hidden fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900/95 backdrop-blur-sm text-white px-2 py-2 pl-6 rounded-full items-center gap-3 shadow-2xl z-[60] border border-slate-700 w-max max-w-[90vw] animate-fade-in-up">
+          <Smartphone size={18} className="text-primary animate-pulse rotate-90 shrink-0" />
+          <span className="text-xs font-bold truncate">Rotate phone for best experience</span>
+          <button
+            onClick={() => setShowMobileBanner(false)}
+            className="ml-2 p-1.5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
     </div>
   );
 };
