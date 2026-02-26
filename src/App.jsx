@@ -1,7 +1,7 @@
 
-import { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
+import { trackPageView } from './services/analytics';
 import ProtectedRoute from './components/ProtectedRoute';
 import SubscriptionGuard from './components/SubscriptionGuard';
 
@@ -28,6 +28,14 @@ import AdminRequestsPage from './pages/admin/AdminRequestsPage';
 import AdminBarbersPage from './pages/admin/AdminBarbersPage';
 import AdminShopsPage from './pages/admin/AdminShopsPage';
 
+const AnalyticsTracker = () => {
+  const location = useLocation();
+  useEffect(() => {
+    trackPageView(location.pathname + location.search);
+  }, [location]);
+  return null;
+};
+
 const App = () => {
   const initialize = useAuthStore((state) => state.initialize);
 
@@ -37,6 +45,7 @@ const App = () => {
 
   return (
     <Router>
+      <AnalyticsTracker />
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<LandingPage />} />
